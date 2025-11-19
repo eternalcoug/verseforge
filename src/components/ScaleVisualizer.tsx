@@ -137,7 +137,7 @@ export function ScaleVisualizer() {
                   value="minor"
                   checked={scaleType === 'minor'}
                   onChange={(e) => setScaleType(e.target.value as ScaleType)}
-                  className="w-5 h-5 text-amber-600 focus:ring-amber-500"
+                  className="w-5 h-5 text-blue-600 focus:ring-blue-500"
                 />
                 <span className="text-lg font-semibold text-[#E5E5E5]">Minor</span>
               </label>
@@ -148,7 +148,7 @@ export function ScaleVisualizer() {
                   value="major-pentatonic"
                   checked={scaleType === 'major-pentatonic'}
                   onChange={(e) => setScaleType(e.target.value as ScaleType)}
-                  className="w-5 h-5 text-amber-600 focus:ring-amber-500"
+                  className="w-5 h-5 text-blue-600 focus:ring-blue-500"
                 />
                 <span className="text-lg font-semibold text-[#E5E5E5]">Major Pentatonic</span>
               </label>
@@ -159,7 +159,7 @@ export function ScaleVisualizer() {
                   value="minor-pentatonic"
                   checked={scaleType === 'minor-pentatonic'}
                   onChange={(e) => setScaleType(e.target.value as ScaleType)}
-                  className="w-5 h-5 text-amber-600 focus:ring-amber-500"
+                  className="w-5 h-5 text-blue-600 focus:ring-blue-500"
                 />
                 <span className="text-lg font-semibold text-[#E5E5E5]">Minor Pentatonic</span>
               </label>
@@ -327,7 +327,7 @@ export function ScaleVisualizer() {
                   <div className="flex justify-between items-start mb-2">
                     <div>
                       <span className="font-bold text-[#E5E5E5]">{prog.name}</span>
-                      <span className="ml-2 text-xs text-orange-400 italic">{prog.genre}</span>
+                      <span className="ml-2 text-xs italic" style={{ color: '#F59E0B' }}>{prog.genre}</span>
                     </div>
                   </div>
                   <div className="flex flex-wrap gap-2 mb-2">
@@ -360,37 +360,37 @@ export function ScaleVisualizer() {
         scaleType={scaleType}
       />
 
-      <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <h4 className="font-bold text-blue-900 mb-3">How to Read This Diagram:</h4>
+      <div className="mt-6 bg-[#242424] border border-[#2A2A2A] rounded-lg p-4">
+        <h4 className="font-bold text-[#E5E5E5] mb-3">How to Read This Diagram:</h4>
 
         <div className="mb-4 flex items-center gap-4 flex-wrap">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-full bg-red-600 ring-2 ring-red-400 flex items-center justify-center text-white text-xs font-bold">
               {scaleInfo.root}
             </div>
-            <span className="text-sm font-semibold text-blue-900">Root Note (starting note)</span>
+            <span className="text-sm font-semibold text-[#E5E5E5]">Root Note (starting note)</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-full bg-blue-600 ring-2 ring-blue-400 flex items-center justify-center text-white text-xs font-bold">
               {scaleInfo.notes[1] || 'X'}
             </div>
-            <span className="text-sm font-semibold text-blue-900">Other scale notes</span>
+            <span className="text-sm font-semibold text-[#E5E5E5]">Other scale notes</span>
           </div>
         </div>
 
-        <ul className="text-sm text-blue-800 space-y-1">
+        <ul className="text-sm text-[#A3A3A3] space-y-1">
           <li>• <strong>Click any note</strong> to hear it played</li>
           <li>• <strong>Hover over notes</strong> to see their scale degree (Root, 2nd, 3rd, etc.)</li>
-          <li>• <strong>Click "Play Scale"</strong> above to hear the entire scale ascending</li>
+          <li>• <strong>Click "Play Scale"</strong> above to hear the entire scale with different directions and speeds</li>
           <li>• <strong>String layout:</strong> Top = high E (1st/thinnest), Bottom = low E (6th/thickest)</li>
           <li>• <strong>Fret numbers</strong> at top show positions (0 = open string, 12 = octave)</li>
           <li>• <strong>Dots above fretboard</strong> show fret markers (3, 5, 7, 9, 12)</li>
         </ul>
       </div>
 
-      <div className="mt-4 bg-amber-50 border border-amber-200 rounded-lg p-4">
-        <h4 className="font-bold text-amber-900 mb-2">Practice Tips:</h4>
-        <ul className="text-sm text-amber-800 space-y-1">
+      <div className="mt-4 bg-[#242424] border border-[#2A2A2A] rounded-lg p-4">
+        <h4 className="font-bold text-[#E5E5E5] mb-2">Practice Tips:</h4>
+        <ul className="text-sm text-[#A3A3A3] space-y-1">
           <li>• Try playing the scale from low to high on a single string</li>
           <li>• Practice horizontal patterns (across strings) and vertical patterns (along one string)</li>
           <li>• Memorize where the root notes are - they're your landmarks on the fretboard</li>
@@ -399,9 +399,9 @@ export function ScaleVisualizer() {
         </ul>
       </div>
 
-      <div className="mt-4 bg-green-50 border border-green-200 rounded-lg p-4">
-        <h4 className="font-bold text-green-900 mb-3">Scale Examples (for reference):</h4>
-        <div className="grid md:grid-cols-2 gap-4 text-sm text-green-800">
+      <div className="mt-4 bg-[#242424] border border-[#2A2A2A] rounded-lg p-4">
+        <h4 className="font-bold text-[#E5E5E5] mb-3">Scale Examples (for reference):</h4>
+        <div className="grid md:grid-cols-2 gap-4 text-sm text-[#A3A3A3]">
           <div>
             <p className="font-bold mb-1">C Major:</p>
             <p className="font-mono">C - D - E - F - G - A - B</p>
@@ -427,7 +427,7 @@ export function ScaleVisualizer() {
             <p className="font-mono">A - C - D - E - G</p>
           </div>
         </div>
-        <p className="text-xs text-green-700 mt-3">
+        <p className="text-xs text-[#707070] mt-3">
           <strong>Note:</strong> Notice how the scale pattern repeats across the fretboard.
           Learn one pattern and you can play it anywhere by starting on a different fret!
         </p>

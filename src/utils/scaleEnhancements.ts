@@ -8,7 +8,44 @@ import { ScaleType } from './scaleTheory';
 const CHROMATIC_NOTES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 
 /**
- * Get scale degree number for a note in a scale
+ * Get scale degree display for a note in a scale
+ * Returns proper degree notation including flats for pentatonic scales
+ */
+export function getScaleDegreeDisplay(note: string, rootNote: string, scaleNotes: string[], scaleType: ScaleType): string | null {
+  const rootIndex = CHROMATIC_NOTES.indexOf(rootNote);
+  const noteIndex = CHROMATIC_NOTES.indexOf(note);
+
+  if (rootIndex === -1 || noteIndex === -1) return null;
+
+  // Calculate semitones from root
+  const semitones = (noteIndex - rootIndex + 12) % 12;
+
+  // Scale intervals
+  const intervals: Record<ScaleType, number[]> = {
+    'major': [0, 2, 4, 5, 7, 9, 11],
+    'minor': [0, 2, 3, 5, 7, 8, 10],
+    'major-pentatonic': [0, 2, 4, 7, 9],
+    'minor-pentatonic': [0, 3, 5, 7, 10]
+  };
+
+  // Degree display names
+  const degreeNames: Record<ScaleType, string[]> = {
+    'major': ['1', '2', '3', '4', '5', '6', '7'],
+    'minor': ['1', '2', '♭3', '4', '5', '♭6', '♭7'],
+    'major-pentatonic': ['1', '2', '3', '5', '6'],
+    'minor-pentatonic': ['1', '♭3', '4', '5', '♭7']
+  };
+
+  const scaleIntervals = intervals[scaleType];
+  const degreeIndex = scaleIntervals.indexOf(semitones);
+
+  if (degreeIndex === -1) return null;
+
+  return degreeNames[scaleType][degreeIndex];
+}
+
+/**
+ * Get scale degree number for a note in a scale (simple numeric)
  */
 export function getScaleDegreeNumber(note: string, scaleNotes: string[]): number | null {
   const index = scaleNotes.indexOf(note);
