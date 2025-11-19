@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Play, Music, Grid3x3, Square, RefreshCw } from 'lucide-react';
+import { Play, Music, Grid3x3, Square, RefreshCw, ChevronDown } from 'lucide-react';
 import { getScaleInfo, KEY_OPTIONS, ScaleType } from '../utils/scaleTheory';
 import { Fretboard } from './Fretboard';
 import { getInstrument } from '../utils/guitarInstrument';
@@ -23,6 +23,7 @@ export function ScaleVisualizer() {
   const [playDirection, setPlayDirection] = useState<PlayDirection>('ascending');
   const [playSpeed, setPlaySpeed] = useState(4); // 1-7 scale
   const [playingChordIndex, setPlayingChordIndex] = useState<number | null>(null);
+  const [progressionsOpen, setProgressionsOpen] = useState(false);
 
   const scaleInfo = getScaleInfo(selectedKey, scaleType);
 
@@ -314,12 +315,24 @@ export function ScaleVisualizer() {
             ))}
           </div>
 
-          <div className="space-y-4">
-            <h4 className="font-bold text-[#E5E5E5] flex items-center gap-2">
-              <RefreshCw className="w-4 h-4" />
-              Common Progressions:
-            </h4>
-            {getCommonProgressions(scaleType).map((prog, progIndex) => {
+          {/* Common Progressions - Accordion */}
+          <div className="border-t border-[#2A2A2A] mt-4 pt-4">
+            <button
+              onClick={() => setProgressionsOpen(!progressionsOpen)}
+              className="w-full flex items-center justify-between hover:bg-[#242424] p-2 rounded transition-colors"
+            >
+              <h4 className="font-bold text-[#E5E5E5] flex items-center gap-2">
+                <RefreshCw className="w-4 h-4" />
+                Common Progressions
+              </h4>
+              <ChevronDown
+                className={`w-5 h-5 text-[#A3A3A3] transition-transform ${progressionsOpen ? 'rotate-180' : ''}`}
+              />
+            </button>
+
+            {progressionsOpen && (
+              <div className="space-y-4 mt-4">
+                {getCommonProgressions(scaleType).map((prog, progIndex) => {
               const chords = getChordsInScale(selectedKey, scaleType);
               const progChords = prog.pattern.map(i => chords[i]);
               return (
@@ -340,7 +353,9 @@ export function ScaleVisualizer() {
                   <p className="text-xs text-[#A3A3A3]">{prog.description}</p>
                 </div>
               );
-            })}
+                })}
+              </div>
+            )}
           </div>
         </div>
       </div>

@@ -503,6 +503,18 @@ export function SongStructureBuilder() {
     handleSongUpdate({ structure: newStructure });
   }
 
+  function clearAllSections() {
+    if (song.structure.length === 0) return;
+
+    const confirmClear = window.confirm(
+      'Are you sure you want to clear all sections? This will remove all verses, choruses, and bridges with their lyrics. This action cannot be undone.'
+    );
+
+    if (confirmClear) {
+      handleSongUpdate({ structure: [] });
+    }
+  }
+
   function renumberSections(structure: SongSection[]): SongSection[] {
     const typeCounts: Record<string, number> = {};
 
@@ -1160,6 +1172,14 @@ export function SongStructureBuilder() {
                 >
                   Collapse All
                 </button>
+                {song.structure.length > 0 && (
+                  <button
+                    onClick={clearAllSections}
+                    className="px-3 py-1 bg-red-50 text-red-600 text-sm rounded hover:bg-red-100 transition-all border border-red-200"
+                  >
+                    Clear All
+                  </button>
+                )}
                 {(['verse', 'chorus', 'bridge'] as SectionType[]).map(type => (
                   <button
                     key={type}

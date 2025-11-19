@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Play, MapPin, Plus, Music, Info } from 'lucide-react';
+import { Search, Play, MapPin, Plus, Music, Info, ChevronDown } from 'lucide-react';
 import { getChordPositions, CHORD_POSITIONS, ChordPosition } from '../utils/chordPositions';
 import { generatePowerChordPositions, PowerChordPosition } from '../utils/powerChordTheory';
 import { GuitarDiagram } from './GuitarDiagram';
@@ -46,6 +46,7 @@ export function ChordPositionFinder() {
   const [playingPosition, setPlayingPosition] = useState<number | null>(null);
   const [progression, setProgression] = useState<string[]>([]);
   const [playingProgression, setPlayingProgression] = useState(false);
+  const [progressionOpen, setProgressionOpen] = useState(false);
 
   const availableRoots = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
   const currentChordName = getChordName(chordRoot, chordQuality);
@@ -249,14 +250,24 @@ export function ChordPositionFinder() {
         </div>
       </div>
 
-      {/* Progression Builder */}
-      <div className="mb-6 p-6 bg-[#1A1A1A] border-2 border-[#2A2A2A] rounded-lg">
-        <h3 className="text-xl font-bold text-[#E5E5E5] mb-4 flex items-center gap-2">
-          <Music className="w-6 h-6 text-blue-600" />
-          Build a Progression
-        </h3>
+      {/* Progression Builder - Accordion */}
+      <div className="mb-6 bg-[#1A1A1A] border-2 border-[#2A2A2A] rounded-lg">
+        <button
+          onClick={() => setProgressionOpen(!progressionOpen)}
+          className="w-full p-6 flex items-center justify-between hover:bg-[#242424] transition-colors"
+        >
+          <h3 className="text-xl font-bold text-[#E5E5E5] flex items-center gap-2">
+            <Music className="w-6 h-6 text-blue-600" />
+            Build a Progression
+          </h3>
+          <ChevronDown
+            className={`w-6 h-6 text-[#A3A3A3] transition-transform ${progressionOpen ? 'rotate-180' : ''}`}
+          />
+        </button>
 
-        <div className="mb-4">
+        {progressionOpen && (
+          <div className="px-6 pb-6">
+            <div className="mb-4">
           <p className="text-sm text-[#A3A3A3] mb-3">Your Progression: (Click + to add current chord)</p>
           <div className="flex flex-wrap gap-2">
             {progression.map((chord, index) => (
@@ -330,6 +341,8 @@ export function ChordPositionFinder() {
             })}
           </div>
         </div>
+          </div>
+        )}
       </div>
 
       {(displayedPositions.length > 0 || displayedPowerPositions.length > 0) ? (

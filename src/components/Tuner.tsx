@@ -7,13 +7,15 @@ import {
   GUITAR_12_TUNINGS,
   StringTuning
 } from '../utils/tuningConfigurations';
-import { Music } from 'lucide-react';
+import { Music, ChevronDown } from 'lucide-react';
 
 export function Tuner() {
   const [selectedGuitar6Tuning, setSelectedGuitar6Tuning] = useState<string>('standard');
   const [selectedUkuleleTuning, setSelectedUkuleleTuning] = useState<string>('standardC');
   const [selectedGuitar12Tuning, setSelectedGuitar12Tuning] = useState<string>('standard');
   const [playingString, setPlayingString] = useState<string | null>(null);
+  const [ukuleleOpen, setUkuleleOpen] = useState(false);
+  const [guitar12Open, setGuitar12Open] = useState(false);
   const synthRef = useRef<Tone.Synth | null>(null);
 
   const stopTuningNote = () => {
@@ -246,70 +248,96 @@ export function Tuner() {
         {renderHeadstock(GUITAR_6_TUNINGS[selectedGuitar6Tuning].strings, 'guitar6', 6)}
       </section>
 
-      <section className="instrument-section bg-[#1A1A1A] border border-[#2A2A2A] p-6 rounded-xl shadow-md">
-        <div className="flex items-center gap-3 mb-4">
-          <span className="text-4xl">🎻</span>
-          <h2 className="text-2xl font-bold text-[#E5E5E5]">Ukulele</h2>
-        </div>
+      {/* Ukulele - Accordion */}
+      <section className="instrument-section bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl shadow-md">
+        <button
+          onClick={() => setUkuleleOpen(!ukuleleOpen)}
+          className="w-full p-6 flex items-center justify-between hover:bg-[#242424] transition-colors"
+        >
+          <div className="flex items-center gap-3">
+            <span className="text-4xl">🎻</span>
+            <h2 className="text-2xl font-bold text-[#E5E5E5]">Ukulele</h2>
+          </div>
+          <ChevronDown
+            className={`w-6 h-6 text-[#A3A3A3] transition-transform ${ukuleleOpen ? 'rotate-180' : ''}`}
+          />
+        </button>
 
-        <div className="mb-6">
-          <label className="block text-sm font-semibold text-[#A3A3A3] mb-2">
-            Select Tuning:
-          </label>
-          <select
-            value={selectedUkuleleTuning}
-            onChange={(e) => setSelectedUkuleleTuning(e.target.value)}
-            className="dark-select w-full"
-          >
-            {Object.entries(UKULELE_TUNINGS).map(([key, config]) => (
-              <option key={key} value={key}>
-                {config.name}
-              </option>
-            ))}
-          </select>
-          <p className="text-sm text-[#A3A3A3] mt-2 italic">
-            {UKULELE_TUNINGS[selectedUkuleleTuning].description}
-          </p>
-        </div>
+        {ukuleleOpen && (
+          <div className="px-6 pb-6">
+            <div className="mb-6">
+              <label className="block text-sm font-semibold text-[#A3A3A3] mb-2">
+                Select Tuning:
+              </label>
+              <select
+                value={selectedUkuleleTuning}
+                onChange={(e) => setSelectedUkuleleTuning(e.target.value)}
+                className="dark-select w-full"
+              >
+                {Object.entries(UKULELE_TUNINGS).map(([key, config]) => (
+                  <option key={key} value={key}>
+                    {config.name}
+                  </option>
+                ))}
+              </select>
+              <p className="text-sm text-[#A3A3A3] mt-2 italic">
+                {UKULELE_TUNINGS[selectedUkuleleTuning].description}
+              </p>
+            </div>
 
-        {renderHeadstock(UKULELE_TUNINGS[selectedUkuleleTuning].strings, 'ukulele', 4)}
+            {renderHeadstock(UKULELE_TUNINGS[selectedUkuleleTuning].strings, 'ukulele', 4)}
+          </div>
+        )}
       </section>
 
-      <section className="instrument-section bg-[#1A1A1A] border border-[#2A2A2A] p-6 rounded-xl shadow-md">
-        <div className="flex items-center gap-3 mb-4">
-          <span className="text-4xl">🎸🎸</span>
-          <h2 className="text-2xl font-bold text-[#E5E5E5]">12-String Acoustic Guitar</h2>
-        </div>
+      {/* 12-String Acoustic Guitar - Accordion */}
+      <section className="instrument-section bg-[#1A1A1A] border border-[#2A2A2A] rounded-xl shadow-md">
+        <button
+          onClick={() => setGuitar12Open(!guitar12Open)}
+          className="w-full p-6 flex items-center justify-between hover:bg-[#242424] transition-colors"
+        >
+          <div className="flex items-center gap-3">
+            <span className="text-4xl">🎸🎸</span>
+            <h2 className="text-2xl font-bold text-[#E5E5E5]">12-String Acoustic Guitar</h2>
+          </div>
+          <ChevronDown
+            className={`w-6 h-6 text-[#A3A3A3] transition-transform ${guitar12Open ? 'rotate-180' : ''}`}
+          />
+        </button>
 
-        <div className="mb-6">
-          <label className="block text-sm font-semibold text-[#A3A3A3] mb-2">
-            Select Tuning:
-          </label>
-          <select
-            value={selectedGuitar12Tuning}
-            onChange={(e) => setSelectedGuitar12Tuning(e.target.value)}
-            className="dark-select w-full"
-          >
-            {Object.entries(GUITAR_12_TUNINGS).map(([key, config]) => (
-              <option key={key} value={key}>
-                {config.name}
-              </option>
-            ))}
-          </select>
-          <p className="text-sm text-[#A3A3A3] mt-2 italic">
-            {GUITAR_12_TUNINGS[selectedGuitar12Tuning].description}
-          </p>
-        </div>
+        {guitar12Open && (
+          <div className="px-6 pb-6">
+            <div className="mb-6">
+              <label className="block text-sm font-semibold text-[#A3A3A3] mb-2">
+                Select Tuning:
+              </label>
+              <select
+                value={selectedGuitar12Tuning}
+                onChange={(e) => setSelectedGuitar12Tuning(e.target.value)}
+                className="dark-select w-full"
+              >
+                {Object.entries(GUITAR_12_TUNINGS).map(([key, config]) => (
+                  <option key={key} value={key}>
+                    {config.name}
+                  </option>
+                ))}
+              </select>
+              <p className="text-sm text-[#A3A3A3] mt-2 italic">
+                {GUITAR_12_TUNINGS[selectedGuitar12Tuning].description}
+              </p>
+            </div>
 
-        {renderHeadstock(GUITAR_12_TUNINGS[selectedGuitar12Tuning].strings, 'guitar12', 12)}
+            {renderHeadstock(GUITAR_12_TUNINGS[selectedGuitar12Tuning].strings, 'guitar12', 12)}
 
-        <div className="mt-4 p-4 bg-[#242424] rounded-lg border border-[#2A2A2A]">
-          <p className="text-sm text-[#A3A3A3]">
-            <strong className="text-[#E5E5E5]">Note:</strong> 12-string guitars have pairs of strings. The high E and B pairs are
-            tuned in unison, while the lower 4 pairs (G, D, A, E) are tuned in octaves. This tuner
-            plays the primary pitch for each course.
-          </p>
-        </div>
+            <div className="mt-4 p-4 bg-[#242424] rounded-lg border border-[#2A2A2A]">
+              <p className="text-sm text-[#A3A3A3]">
+                <strong className="text-[#E5E5E5]">Note:</strong> 12-string guitars have pairs of strings. The high E and B pairs are
+                tuned in unison, while the lower 4 pairs (G, D, A, E) are tuned in octaves. This tuner
+                plays the primary pitch for each course.
+              </p>
+            </div>
+          </div>
+        )}
       </section>
 
       <section className="tuning-tips bg-gray-50 p-6 rounded-xl border-2 border-gray-200">
