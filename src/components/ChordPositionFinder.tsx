@@ -102,8 +102,8 @@ export function ChordPositionFinder() {
 
     setPlayingPosition(index);
 
-    const chordName = chordInput.replace('m', '').replace('#', '').replace('b', '');
-    const quality = chordInput.includes('m') ? 'minor' : 'major';
+    const chordName = chordRoot;
+    const quality = chordQuality;
 
     await playerInstance.ensureInstrument();
 
@@ -149,7 +149,7 @@ export function ChordPositionFinder() {
           <button
             onClick={() => {
               setChordType('standard');
-              setDisplayedPositions(getChordPositions(chordInput));
+              setDisplayedPositions(getChordPositions(currentChordName));
               setDisplayedPowerPositions([]);
             }}
             className={`
@@ -167,8 +167,7 @@ export function ChordPositionFinder() {
           <button
             onClick={() => {
               setChordType('power');
-              const rootNote = chordInput.replace(/[^A-G#b]/g, '');
-              setDisplayedPowerPositions(generatePowerChordPositions(rootNote));
+              setDisplayedPowerPositions(generatePowerChordPositions(chordRoot));
               setDisplayedPositions([]);
             }}
             className={`
@@ -194,11 +193,60 @@ export function ChordPositionFinder() {
             <li>• Power chords use only <strong>root + 5th</strong> (no 3rd)</li>
             <li>• Neither major nor minor - <strong>neutral sound</strong></li>
             <li>• Perfect for <strong>rock, punk, metal, and country-rock</strong></li>
-            <li>• Notation: <strong>{chordInput}5</strong></li>
+            <li>• Notation: <strong>{chordRoot}5</strong></li>
             <li>• Sound huge with <strong>distortion</strong></li>
           </ul>
         </div>
       )}
+
+      <div className="mb-8">
+        <label className="block text-[#E5E5E5] font-bold mb-2">
+          Select Chord
+        </label>
+        <div className="grid md:grid-cols-2 gap-3 mb-3">
+          <div>
+            <label className="block text-sm text-[#A3A3A3] mb-1">Root Note:</label>
+            <select
+              value={chordRoot}
+              onChange={(e) => {
+                setChordRoot(e.target.value);
+              }}
+              className="dark-select w-full text-lg"
+            >
+              {availableRoots.map(root => (
+                <option key={root} value={root}>{root}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm text-[#A3A3A3] mb-1">Quality:</label>
+            <select
+              value={chordQuality}
+              onChange={(e) => setChordQuality(e.target.value as ChordQuality)}
+              className="dark-select w-full text-lg"
+            >
+              {CHORD_QUALITIES.map(quality => (
+                <option key={quality.value} value={quality.value}>
+                  {quality.label} ({chordRoot}{quality.suffix})
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+        <div className="flex gap-3">
+          <div className="flex-1 px-4 py-3 bg-[#242424] border-2 border-blue-600 rounded-lg text-center">
+            <div className="text-sm text-[#A3A3A3]">Current Chord:</div>
+            <div className="text-2xl font-bold text-[#E5E5E5]">{currentChordName}</div>
+          </div>
+          <button
+            onClick={handleSearch}
+            className="bg-amber-600 hover:bg-amber-700 text-white font-bold px-6 rounded-lg transition-all shadow-lg flex items-center gap-2"
+          >
+            <Search size={20} />
+            Show Positions
+          </button>
+        </div>
+      </div>
 
       {/* Progression Builder */}
       <div className="mb-6 p-6 bg-[#1A1A1A] border-2 border-[#2A2A2A] rounded-lg">
@@ -280,55 +328,6 @@ export function ChordPositionFinder() {
               );
             })}
           </div>
-        </div>
-      </div>
-
-      <div className="mb-8">
-        <label className="block text-[#E5E5E5] font-bold mb-2">
-          Select Chord
-        </label>
-        <div className="grid md:grid-cols-2 gap-3 mb-3">
-          <div>
-            <label className="block text-sm text-[#A3A3A3] mb-1">Root Note:</label>
-            <select
-              value={chordRoot}
-              onChange={(e) => {
-                setChordRoot(e.target.value);
-              }}
-              className="dark-select w-full text-lg"
-            >
-              {availableRoots.map(root => (
-                <option key={root} value={root}>{root}</option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm text-[#A3A3A3] mb-1">Quality:</label>
-            <select
-              value={chordQuality}
-              onChange={(e) => setChordQuality(e.target.value as ChordQuality)}
-              className="dark-select w-full text-lg"
-            >
-              {CHORD_QUALITIES.map(quality => (
-                <option key={quality.value} value={quality.value}>
-                  {quality.label} ({chordRoot}{quality.suffix})
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-        <div className="flex gap-3">
-          <div className="flex-1 px-4 py-3 bg-[#242424] border-2 border-blue-600 rounded-lg text-center">
-            <div className="text-sm text-[#A3A3A3]">Current Chord:</div>
-            <div className="text-2xl font-bold text-[#E5E5E5]">{currentChordName}</div>
-          </div>
-          <button
-            onClick={handleSearch}
-            className="bg-amber-600 hover:bg-amber-700 text-white font-bold px-6 rounded-lg transition-all shadow-lg flex items-center gap-2"
-          >
-            <Search size={20} />
-            Show Positions
-          </button>
         </div>
       </div>
 
@@ -540,7 +539,7 @@ export function ChordPositionFinder() {
         </div>
       ) : (
         <div className="text-center py-12 text-[#A3A3A3]">
-          <p className="text-lg">No positions found for "{chordInput}"</p>
+          <p className="text-lg">No positions found for "{chordType === 'standard' ? currentChordName : `${chordRoot}5`}"</p>
           <p className="text-sm mt-2">Try a different chord name (e.g., C, Am, G, Dm)</p>
         </div>
       )}
