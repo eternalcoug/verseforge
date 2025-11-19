@@ -184,12 +184,13 @@ export function ChordPositionFinder() {
         </div>
       </div>
 
+      {/* TASK 2: Fixed Power Chord Info text visibility - changed from light gray to dark text */}
       {chordType === 'power' && (
         <div className="mb-6 p-4 bg-red-50 border-2 border-red-200 rounded-lg">
           <h3 className="font-bold text-red-800 mb-2 flex items-center gap-2">
             <span>Power Chord Info</span>
           </h3>
-          <ul className="text-sm text-[#E5E5E5] space-y-1">
+          <ul className="text-sm text-[#333333] space-y-1">
             <li>• Power chords use only <strong>root + 5th</strong> (no 3rd)</li>
             <li>• Neither major nor minor - <strong>neutral sound</strong></li>
             <li>• Perfect for <strong>rock, punk, metal, and country-rock</strong></li>

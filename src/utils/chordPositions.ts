@@ -969,6 +969,290 @@ export const CHORD_POSITIONS: Record<string, ChordPosition[]> = {
       baseFret: 2,
       name: 'Minimal (2nd fret)'
     }
+  ],
+
+  // ============================================================================
+  // TASK 1: EXTENDED CHORD TYPES - Dominant 7th, Major 7th, Minor 7th, etc.
+  // ============================================================================
+
+  // C Dominant 7th (C7)
+  'C7': [
+    {
+      chord: 'C7',
+      frets: [0, 3, 2, 3, 1, 0],
+      fingers: [0, 3, 2, 4, 1, 0],
+      baseFret: 1,
+      name: 'Open Position'
+    },
+    {
+      chord: 'C7',
+      frets: ['x', 3, 2, 3, 1, 'x'],
+      fingers: ['x', 3, 2, 4, 1, 'x'],
+      baseFret: 1,
+      name: 'Open (middle strings)'
+    },
+    {
+      chord: 'C7',
+      frets: [8, 10, 8, 9, 8, 8],
+      fingers: [1, 3, 1, 2, 1, 1],
+      baseFret: 8,
+      barres: [1],
+      name: 'Barre (8th fret)'
+    },
+    {
+      chord: 'C7',
+      frets: ['x', 3, 5, 3, 5, 3],
+      fingers: ['x', 1, 3, 1, 4, 1],
+      baseFret: 3,
+      barres: [1],
+      name: 'Barre (3rd fret)'
+    }
+  ],
+
+  // C Major 7th (Cmaj7)
+  'Cmaj7': [
+    {
+      chord: 'Cmaj7',
+      frets: [0, 3, 2, 0, 0, 0],
+      fingers: [0, 3, 2, 0, 0, 0],
+      baseFret: 1,
+      name: 'Open Position'
+    },
+    {
+      chord: 'Cmaj7',
+      frets: ['x', 3, 2, 0, 0, 'x'],
+      fingers: ['x', 3, 2, 0, 0, 'x'],
+      baseFret: 1,
+      name: 'Open (no bass)'
+    },
+    {
+      chord: 'Cmaj7',
+      frets: [8, 10, 9, 9, 8, 8],
+      fingers: [1, 4, 2, 3, 1, 1],
+      baseFret: 8,
+      barres: [1],
+      name: 'Barre (8th fret)'
+    },
+    {
+      chord: 'Cmaj7',
+      frets: ['x', 'x', 10, 9, 8, 7],
+      fingers: ['x', 'x', 4, 3, 2, 1],
+      baseFret: 7,
+      name: 'High voicing'
+    }
+  ],
+
+  // C Minor 7th (Cm7)
+  'Cm7': [
+    {
+      chord: 'Cm7',
+      frets: ['x', 3, 1, 3, 1, 'x'],
+      fingers: ['x', 3, 1, 4, 1, 'x'],
+      baseFret: 1,
+      barres: [1],
+      name: 'Open (partial barre)'
+    },
+    {
+      chord: 'Cm7',
+      frets: [8, 10, 8, 8, 8, 8],
+      fingers: [1, 3, 1, 1, 1, 1],
+      baseFret: 8,
+      barres: [1],
+      name: 'Barre (8th fret)'
+    },
+    {
+      chord: 'Cm7',
+      frets: ['x', 'x', 10, 8, 8, 8],
+      fingers: ['x', 'x', 4, 1, 1, 1],
+      baseFret: 8,
+      barres: [1],
+      name: 'High (10th fret)'
+    }
+  ],
+
+  // C Diminished (Cdim)
+  'Cdim': [
+    {
+      chord: 'Cdim',
+      frets: ['x', 3, 1, 2, 1, 'x'],
+      fingers: ['x', 4, 1, 3, 2, 'x'],
+      baseFret: 1,
+      name: 'Open Position'
+    },
+    {
+      chord: 'Cdim',
+      frets: ['x', 'x', 10, 7, 8, 7],
+      fingers: ['x', 'x', 4, 1, 3, 2],
+      baseFret: 7,
+      name: 'High voicing (7th)'
+    },
+    {
+      chord: 'Cdim',
+      frets: ['x', 3, 4, 5, 4, 'x'],
+      fingers: ['x', 1, 2, 4, 3, 'x'],
+      baseFret: 3,
+      name: 'Mid voicing'
+    }
+  ],
+
+  // C Augmented (Caug)
+  'Caug': [
+    {
+      chord: 'Caug',
+      frets: ['x', 3, 2, 1, 1, 'x'],
+      fingers: ['x', 4, 3, 1, 2, 'x'],
+      baseFret: 1,
+      name: 'Open Position'
+    },
+    {
+      chord: 'Caug',
+      frets: ['x', 'x', 10, 9, 9, 'x'],
+      fingers: ['x', 'x', 3, 1, 2, 'x'],
+      baseFret: 9,
+      name: 'High voicing'
+    },
+    {
+      chord: 'Caug',
+      frets: [8, 'x', 9, 9, 9, 'x'],
+      fingers: [1, 'x', 2, 3, 4, 'x'],
+      baseFret: 8,
+      name: 'Mid position (8th)'
+    }
+  ],
+
+  // C Suspended 2nd (Csus2)
+  'Csus2': [
+    {
+      chord: 'Csus2',
+      frets: ['x', 3, 0, 0, 1, 'x'],
+      fingers: ['x', 3, 0, 0, 1, 'x'],
+      baseFret: 1,
+      name: 'Open Position'
+    },
+    {
+      chord: 'Csus2',
+      frets: [8, 10, 10, 10, 8, 8],
+      fingers: [1, 2, 3, 4, 1, 1],
+      baseFret: 8,
+      barres: [1],
+      name: 'Barre (8th fret)'
+    },
+    {
+      chord: 'Csus2',
+      frets: ['x', 'x', 10, 10, 10, 13],
+      fingers: ['x', 'x', 1, 1, 1, 4],
+      baseFret: 10,
+      barres: [1],
+      name: 'High voicing'
+    }
+  ],
+
+  // C Suspended 4th (Csus4)
+  'Csus4': [
+    {
+      chord: 'Csus4',
+      frets: ['x', 3, 3, 0, 1, 1],
+      fingers: ['x', 3, 4, 0, 1, 2],
+      baseFret: 1,
+      name: 'Open Position'
+    },
+    {
+      chord: 'Csus4',
+      frets: [8, 10, 10, 10, 8, 8],
+      fingers: [1, 3, 3, 3, 1, 1],
+      baseFret: 8,
+      barres: [1],
+      name: 'Barre (8th fret)'
+    },
+    {
+      chord: 'Csus4',
+      frets: ['x', 'x', 10, 10, 11, 13],
+      fingers: ['x', 'x', 1, 1, 2, 4],
+      baseFret: 10,
+      barres: [1],
+      name: 'High voicing'
+    }
+  ],
+
+  // C Add9 (Cadd9)
+  'Cadd9': [
+    {
+      chord: 'Cadd9',
+      frets: ['x', 3, 2, 0, 3, 0],
+      fingers: ['x', 2, 1, 0, 3, 0],
+      baseFret: 1,
+      name: 'Open Position'
+    },
+    {
+      chord: 'Cadd9',
+      frets: [8, 10, 10, 9, 10, 8],
+      fingers: [1, 3, 4, 2, 4, 1],
+      baseFret: 8,
+      barres: [1],
+      name: 'Barre (8th fret)'
+    },
+    {
+      chord: 'Cadd9',
+      frets: ['x', 'x', 10, 10, 12, 10],
+      fingers: ['x', 'x', 1, 1, 3, 1],
+      baseFret: 10,
+      barres: [1],
+      name: 'High voicing'
+    }
+  ],
+
+  // C Sixth (C6)
+  'C6': [
+    {
+      chord: 'C6',
+      frets: ['x', 3, 2, 2, 1, 0],
+      fingers: ['x', 4, 2, 3, 1, 0],
+      baseFret: 1,
+      name: 'Open Position'
+    },
+    {
+      chord: 'C6',
+      frets: [8, 10, 10, 9, 10, 10],
+      fingers: [1, 2, 3, 1, 3, 4],
+      baseFret: 8,
+      barres: [1],
+      name: 'Barre (8th fret)'
+    },
+    {
+      chord: 'C6',
+      frets: ['x', 'x', 10, 10, 10, 10],
+      fingers: ['x', 'x', 1, 1, 1, 1],
+      baseFret: 10,
+      barres: [1],
+      name: 'High (block chord)'
+    }
+  ],
+
+  // C Ninth (C9)
+  'C9': [
+    {
+      chord: 'C9',
+      frets: ['x', 3, 2, 3, 3, 'x'],
+      fingers: ['x', 2, 1, 3, 4, 'x'],
+      baseFret: 1,
+      name: 'Open Position'
+    },
+    {
+      chord: 'C9',
+      frets: [8, 10, 8, 9, 10, 'x'],
+      fingers: [1, 3, 1, 2, 4, 'x'],
+      baseFret: 8,
+      barres: [1],
+      name: 'Barre (8th fret)'
+    },
+    {
+      chord: 'C9',
+      frets: ['x', 'x', 10, 10, 10, 12],
+      fingers: ['x', 'x', 1, 1, 1, 3],
+      baseFret: 10,
+      barres: [1],
+      name: 'High voicing'
+    }
   ]
 };
 
