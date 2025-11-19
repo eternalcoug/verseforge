@@ -1,9 +1,20 @@
 import React, { useState } from 'react';
-import { Search, Play, MapPin } from 'lucide-react';
+import { Search, Play, MapPin, Plus, Music, Info } from 'lucide-react';
 import { getChordPositions, CHORD_POSITIONS, ChordPosition } from '../utils/chordPositions';
 import { generatePowerChordPositions, PowerChordPosition } from '../utils/powerChordTheory';
 import { GuitarDiagram } from './GuitarDiagram';
 import { ProgressionPlayer } from '../utils/audioPlayer';
+import {
+  CHORD_QUALITIES,
+  ChordQuality,
+  getChordName,
+  getChordNotes,
+  calculateDifficulty,
+  getRelatedChords,
+  getCommonProgressions,
+  getProgressionChords,
+  getFretRange
+} from '../utils/chordEnhancements';
 
 const playerInstance = new ProgressionPlayer();
 
@@ -27,23 +38,57 @@ function convertPowerChordToChordPosition(powerPos: PowerChordPosition): ChordPo
 }
 
 export function ChordPositionFinder() {
-  const [chordInput, setChordInput] = useState('C');
+  const [chordRoot, setChordRoot] = useState('C');
+  const [chordQuality, setChordQuality] = useState<ChordQuality>('major');
   const [chordType, setChordType] = useState<'standard' | 'power'>('standard');
   const [displayedPositions, setDisplayedPositions] = useState(getChordPositions('C'));
   const [displayedPowerPositions, setDisplayedPowerPositions] = useState<PowerChordPosition[]>([]);
   const [playingPosition, setPlayingPosition] = useState<number | null>(null);
+  const [progression, setProgression] = useState<string[]>([]);
+  const [playingProgression, setPlayingProgression] = useState(false);
 
-  const availableChords = Object.keys(CHORD_POSITIONS).sort();
+  const availableRoots = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+  const currentChordName = getChordName(chordRoot, chordQuality);
 
   const handleSearch = () => {
     if (chordType === 'standard') {
-      const positions = getChordPositions(chordInput);
+      const searchChord = currentChordName;
+      const positions = getChordPositions(searchChord);
       setDisplayedPositions(positions);
     } else {
-      const rootNote = chordInput.replace(/[^A-G#b]/g, '');
-      const positions = generatePowerChordPositions(rootNote);
+      const positions = generatePowerChordPositions(chordRoot);
       setDisplayedPowerPositions(positions);
     }
+  };
+
+  const addToProgression = (chord: string) => {
+    setProgression([...progression, chord]);
+  };
+
+  const removeFromProgression = (index: number) => {
+    setProgression(progression.filter((_, i) => i !== index));
+  };
+
+  const playProgressionSequence = async () => {
+    if (progression.length === 0) return;
+    setPlayingProgression(true);
+
+    await playerInstance.ensureInstrument();
+
+    for (let i = 0; i < progression.length; i++) {
+      const chord = progression[i];
+      const root = chord.replace(/[^A-G#]/g, '');
+      const notes = getChordNotes(root, chordQuality);
+      const notesWithOctaves = notes.map(n => `${n}3`);
+
+      if (playerInstance['synth']) {
+        playerInstance['synth'].triggerAttackRelease(notesWithOctaves, '2n');
+      }
+
+      await new Promise(resolve => setTimeout(resolve, 1200));
+    }
+
+    setPlayingProgression(false);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -155,28 +200,128 @@ export function ChordPositionFinder() {
         </div>
       )}
 
-      <div className="mb-8">
-        <label className="block text-amber-900 font-bold mb-2">
-          Enter Chord Name
-        </label>
-        <div className="flex gap-3">
-          <select
-            value={chordInput}
-            onChange={(e) => {
-              setChordInput(e.target.value);
-              if (chordType === 'standard') {
-                setDisplayedPositions(getChordPositions(e.target.value));
-              } else {
-                const rootNote = e.target.value.replace(/[^A-G#b]/g, '');
-                setDisplayedPowerPositions(generatePowerChordPositions(rootNote));
-              }
-            }}
-            className="dark-select flex-1 text-lg"
-          >
-            {availableChords.map(chord => (
-              <option key={chord} value={chord}>{chord}</option>
+      {/* Progression Builder */}
+      <div className="mb-6 p-6 bg-[#1A1A1A] border-2 border-[#2A2A2A] rounded-lg">
+        <h3 className="text-xl font-bold text-[#E5E5E5] mb-4 flex items-center gap-2">
+          <Music className="w-6 h-6 text-blue-600" />
+          Build a Progression
+        </h3>
+
+        <div className="mb-4">
+          <p className="text-sm text-[#A3A3A3] mb-3">Your Progression: (Click + to add current chord)</p>
+          <div className="flex flex-wrap gap-2">
+            {progression.map((chord, index) => (
+              <button
+                key={index}
+                onClick={() => removeFromProgression(index)}
+                className="px-4 py-2 bg-[#0F0F0F] border-2 border-blue-600 rounded-lg text-[#E5E5E5] font-bold hover:bg-[#242424] transition-all"
+              >
+                {chord}
+              </button>
             ))}
-          </select>
+            <button
+              onClick={() => addToProgression(currentChordName)}
+              className="px-4 py-2 border-2 border-dashed border-blue-600 rounded-lg text-blue-600 font-bold hover:bg-[#242424] transition-all flex items-center gap-1"
+            >
+              <Plus size={16} />
+              Add {currentChordName}
+            </button>
+          </div>
+        </div>
+
+        {progression.length > 0 && (
+          <div className="flex gap-3">
+            <button
+              onClick={playProgressionSequence}
+              disabled={playingProgression}
+              className="px-6 py-2 bg-green-500 hover:bg-green-600 text-white font-bold rounded-lg transition-all flex items-center gap-2"
+            >
+              <Play size={16} />
+              {playingProgression ? 'Playing...' : 'Play Progression'}
+            </button>
+            <button
+              onClick={() => setProgression([])}
+              className="px-6 py-2 bg-transparent border-2 border-[#2A2A2A] text-[#E5E5E5] font-bold rounded-lg hover:border-blue-600 transition-all"
+            >
+              Clear
+            </button>
+          </div>
+        )}
+
+        {/* Common Progressions */}
+        <div className="mt-6 pt-6 border-t border-[#2A2A2A]">
+          <h4 className="font-bold text-[#E5E5E5] mb-3">💡 Common Progressions in {chordRoot}:</h4>
+          <div className="space-y-3">
+            {getCommonProgressions(chordRoot).map((prog, index) => {
+              const chords = getProgressionChords(chordRoot, prog);
+              return (
+                <div key={index} className="p-3 bg-[#242424] rounded-lg border border-[#2A2A2A]">
+                  <div className="flex justify-between items-start mb-2">
+                    <div>
+                      <span className="font-bold text-[#E5E5E5]">{prog.name}</span>
+                      <span className="ml-2 text-xs italic" style={{ color: '#F59E0B' }}>{prog.genre}</span>
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap gap-2 mb-2">
+                    {chords.map((chord, i) => (
+                      <span key={i} className="px-3 py-1 bg-blue-900/30 border border-blue-600/50 rounded text-[#E5E5E5] font-semibold text-sm">
+                        {chord}
+                      </span>
+                    ))}
+                  </div>
+                  <p className="text-xs text-[#A3A3A3]">{prog.description}</p>
+                  <button
+                    onClick={() => setProgression(chords)}
+                    className="mt-2 text-xs text-blue-600 hover:text-blue-400 font-semibold"
+                  >
+                    Load This Progression
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      <div className="mb-8">
+        <label className="block text-[#E5E5E5] font-bold mb-2">
+          Select Chord
+        </label>
+        <div className="grid md:grid-cols-2 gap-3 mb-3">
+          <div>
+            <label className="block text-sm text-[#A3A3A3] mb-1">Root Note:</label>
+            <select
+              value={chordRoot}
+              onChange={(e) => {
+                setChordRoot(e.target.value);
+              }}
+              className="dark-select w-full text-lg"
+            >
+              {availableRoots.map(root => (
+                <option key={root} value={root}>{root}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm text-[#A3A3A3] mb-1">Quality:</label>
+            <select
+              value={chordQuality}
+              onChange={(e) => setChordQuality(e.target.value as ChordQuality)}
+              className="dark-select w-full text-lg"
+            >
+              {CHORD_QUALITIES.map(quality => (
+                <option key={quality.value} value={quality.value}>
+                  {quality.label} ({chordRoot}{quality.suffix})
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+        <div className="flex gap-3">
+          <div className="flex-1 px-4 py-3 bg-[#242424] border-2 border-blue-600 rounded-lg text-center">
+            <div className="text-sm text-[#A3A3A3]">Current Chord:</div>
+            <div className="text-2xl font-bold text-[#E5E5E5]">{currentChordName}</div>
+          </div>
           <button
             onClick={handleSearch}
             className="bg-amber-600 hover:bg-amber-700 text-white font-bold px-6 rounded-lg transition-all shadow-lg flex items-center gap-2"
@@ -189,8 +334,8 @@ export function ChordPositionFinder() {
 
       {(displayedPositions.length > 0 || displayedPowerPositions.length > 0) ? (
         <div>
-          <h3 className="text-lg font-bold text-amber-900 mb-4">
-            {chordType === 'standard' ? displayedPositions.length : displayedPowerPositions.length} Position{(chordType === 'standard' ? displayedPositions.length : displayedPowerPositions.length) !== 1 ? 's' : ''} for {chordInput}{chordType === 'power' ? '5' : ''}
+          <h3 className="text-lg font-bold text-[#E5E5E5] mb-4">
+            {chordType === 'standard' ? displayedPositions.length : displayedPowerPositions.length} Position{(chordType === 'standard' ? displayedPositions.length : displayedPowerPositions.length) !== 1 ? 's' : ''} for {chordType === 'standard' ? currentChordName : `${chordRoot}5`}
           </h3>
           <div className={`grid gap-6 ${chordType === 'power' ? 'md:grid-cols-2 lg:grid-cols-3' : 'md:grid-cols-2 lg:grid-cols-3'}`}>
             {chordType === 'power' && displayedPowerPositions.map((position, index) => (
@@ -246,42 +391,145 @@ export function ChordPositionFinder() {
                 )}
               </div>
             ))}
-            {chordType === 'standard' && displayedPositions.map((position, index) => (
-              <div
-                key={index}
-                className={`
-                  bg-amber-50 p-4 rounded-lg border-2 transition-all
-                  ${playingPosition === index
-                    ? 'border-amber-600 shadow-lg'
-                    : 'border-amber-200'
-                  }
-                `}
-              >
-                <GuitarDiagram position={position} />
-                <button
-                  onClick={() => playPosition(index)}
+            {chordType === 'standard' && displayedPositions.map((position, index) => {
+              const difficulty = calculateDifficulty(position.frets, position.baseFret);
+              const notes = getChordNotes(chordRoot, chordQuality);
+              const fretRange = getFretRange(position.frets, position.baseFret);
+
+              return (
+                <div
+                  key={index}
                   className={`
-                    w-full mt-4 py-2 px-4 rounded-lg font-bold transition-all flex items-center justify-center gap-2
+                    bg-amber-50 p-4 rounded-lg border-2 transition-all
                     ${playingPosition === index
-                      ? 'bg-green-600 text-white'
-                      : 'bg-green-500 hover:bg-green-600 text-white'
+                      ? 'border-amber-600 shadow-lg'
+                      : 'border-amber-200'
                     }
                   `}
                 >
-                  <Play size={16} />
-                  {playingPosition === index ? 'Playing...' : 'Play Chord'}
-                </button>
-                {index === 0 && (
-                  <div className="mt-2 text-xs text-center text-green-700 font-semibold">
-                    ⭐ Easiest for beginners
+                  {/* Header with difficulty */}
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-sm font-semibold text-[#1A1A1A]">
+                      {position.name || `Position ${index + 1}`}
+                    </span>
+                    <div className="flex items-center gap-1">
+                      {[...Array(5)].map((_, i) => (
+                        <span
+                          key={i}
+                          style={{
+                            color: i < difficulty.stars ? '#F59E0B' : '#525252',
+                            fontSize: '14px'
+                          }}
+                        >
+                          ⭐
+                        </span>
+                      ))}
+                    </div>
                   </div>
-                )}
-              </div>
-            ))}
+
+                  <GuitarDiagram position={position} />
+
+                  {/* Chord info */}
+                  <div className="mt-3 text-xs space-y-1">
+                    <div className="flex justify-between text-[#1A1A1A]">
+                      <span className="font-semibold">Notes:</span>
+                      <span>{notes.join(' ')}</span>
+                    </div>
+                    <div className="flex justify-between text-[#1A1A1A]">
+                      <span className="font-semibold">Range:</span>
+                      <span>{fretRange}</span>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => playPosition(index)}
+                    className={`
+                      w-full mt-4 py-2 px-4 rounded-lg font-bold transition-all flex items-center justify-center gap-2
+                      ${playingPosition === index
+                        ? 'bg-green-600 text-white'
+                        : 'bg-green-500 hover:bg-green-600 text-white'
+                      }
+                    `}
+                  >
+                    <Play size={16} />
+                    {playingPosition === index ? 'Playing...' : 'Play Chord'}
+                  </button>
+                  {index === 0 && (
+                    <div className="mt-2 text-xs text-center text-green-700 font-semibold">
+                      ⭐ Easiest for beginners
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
-          <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <h4 className="font-bold text-blue-900 mb-2">Diagram Legend:</h4>
-            <ul className="text-sm text-blue-800 space-y-1">
+
+          {/* Related Chords Section */}
+          {chordType === 'standard' && chordQuality === 'major' && (
+            <div className="mt-8 p-6 bg-[#1A1A1A] border-2 border-[#2A2A2A] rounded-lg">
+              <h3 className="text-xl font-bold text-[#E5E5E5] mb-4 flex items-center gap-2">
+                <Info className="w-6 h-6 text-blue-600" />
+                Alternative & Related Chords
+              </h3>
+
+              {(() => {
+                const related = getRelatedChords(chordRoot, chordQuality);
+                return (
+                  <div className="space-y-4">
+                    {related.variations && (
+                      <div>
+                        <h4 className="text-sm font-bold text-[#E5E5E5] mb-2">Add Color to {currentChordName}:</h4>
+                        <div className="flex flex-wrap gap-2">
+                          {related.variations.map((chord, i) => (
+                            <button
+                              key={i}
+                              onClick={() => {
+                                const [newRoot, newSuffix] = [chord.replace(/[^A-G#]/g, ''), chord.replace(/[A-G#]/g, '')];
+                                setChordRoot(newRoot);
+                                // Map suffix to quality - simplified for now
+                                if (chord.includes('add9')) setChordQuality('add9');
+                                else if (chord.includes('maj7')) setChordQuality('maj7');
+                                else if (chord.includes('6')) setChordQuality('6');
+                              }}
+                              className="px-3 py-2 bg-[#0F0F0F] border border-blue-600 rounded text-[#E5E5E5] text-sm font-semibold hover:bg-[#242424] transition-all"
+                            >
+                              {chord}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {related.relatedMinors && (
+                      <div>
+                        <h4 className="text-sm font-bold text-[#E5E5E5] mb-2">Related Minor Chords:</h4>
+                        <div className="flex flex-wrap gap-2">
+                          {related.relatedMinors.map((chord, i) => (
+                            <button
+                              key={i}
+                              onClick={() => {
+                                const cleanChord = chord.replace(' (Relative minor)', '');
+                                const newRoot = cleanChord.replace('m', '');
+                                setChordRoot(newRoot);
+                                setChordQuality('minor');
+                              }}
+                              className="px-3 py-2 bg-[#0F0F0F] border border-blue-600 rounded text-[#E5E5E5] text-sm font-semibold hover:bg-[#242424] transition-all"
+                            >
+                              {chord}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
+            </div>
+          )}
+
+          <div className="mt-6 bg-[#242424] border border-[#2A2A2A] rounded-lg p-4">
+            <h4 className="font-bold text-[#E5E5E5] mb-2">Diagram Legend:</h4>
+            <ul className="text-sm text-[#A3A3A3] space-y-1">
               <li><span className="font-bold">X</span> = Don't play this string</li>
               <li><span className="font-bold">O</span> = Play open string (no fret)</li>
               <li><span className="inline-block w-4 h-4 bg-red-600 rounded-full align-middle"></span> = Root note</li>
