@@ -17,6 +17,8 @@ export function Tuner() {
   const [ukuleleOpen, setUkuleleOpen] = useState(false);
   const [guitar12Open, setGuitar12Open] = useState(false);
   const synthRef = useRef<Tone.Synth | null>(null);
+  const chorusRef = useRef<Tone.Chorus | null>(null);
+  const reverbRef = useRef<Tone.Reverb | null>(null);
 
   const stopTuningNote = () => {
     if (synthRef.current) {
@@ -34,47 +36,85 @@ export function Tuner() {
   };
 
   const playTuningNote = async (fullNote: string, stringId: string) => {
-    try {
-      if (playingString === stringId && synthRef.current) {
-        stopTuningNote();
-        return;
-      }
+  try {
+    if (playingString === stringId && synthRef.current) {
+      stopTuningNote();
+      return;
+    }
 
-      if (synthRef.current) {
-        stopTuningNote();
-      }
-
-      await Tone.start();
-
-      console.log(`Playing pure tone: ${fullNote}`);
-
-      setPlayingString(stringId);
-
-      synthRef.current = new Tone.Synth({
-        oscillator: {
-          type: 'sine'
-        },
-        envelope: {
-          attack: 0.05,
-          decay: 0,
-          sustain: 1,
-          release: 0.1
-        }
-      }).toDestination();
-
-      synthRef.current.volume.value = -6;
-
-      synthRef.current.triggerAttack(fullNote);
-
-    } catch (error) {
-      console.error('Error playing tuning note:', error);
+    if (synthRef.current) {
       stopTuningNote();
     }
-  };
+
+    // ✅ START TONE.JS (must be after user click)
+    await Tone.start();
+    console.log('✅ Tone.js started successfully');
+
+    console.log(`🎸 Playing guitar tone with effects: ${fullNote}`);
+
+    setPlayingString(stringId);
+
+    // Create reverb if it doesn't exist (reuse for all notes)
+    if (!reverbRef.current) {
+      reverbRef.current = new Tone.Reverb({
+        decay: 2,
+        wet: 0.15  // 15% reverb, 85% dry signal
+      }).toDestination();
+      console.log('🎚️ Reverb created');
+    }
+
+    // Create chorus if it doesn't exist (reuse for all notes)
+    if (!chorusRef.current) {
+      chorusRef.current = new Tone.Chorus({
+        frequency: 1.5,
+        delayTime: 3.5,
+        depth: 0.3,
+        wet: 0.2  // 20% chorus effect
+      }).start();
+      chorusRef.current.connect(reverbRef.current);
+      console.log('🎶 Chorus created');
+    }
+
+    // ✨ CREATE IMPROVED GUITAR SYNTH
+    synthRef.current = new Tone.Synth({
+      oscillator: {
+        type: 'triangle',
+        partials: [1, 0.5, 0.25, 0.125]  // Rich harmonics
+      },
+      envelope: {
+        attack: 0.005,   // Fast attack (pluck)
+        decay: 0.4,      // Natural decay
+        sustain: 0.3,    // Some sustain
+        release: 1.5     // Long release (string rings out)
+      }
+    });
+
+    // Connect effects chain: synth → chorus → reverb → destination
+    synthRef.current.connect(chorusRef.current);
+    synthRef.current.volume.value = -10;
+
+    // Play the note
+    synthRef.current.triggerAttack(fullNote);
+
+  } catch (error) {
+    console.error('❌ Error playing tuning note:', error);
+    stopTuningNote();
+  }
+};
+
 
   useEffect(() => {
     return () => {
       stopTuningNote();
+      // Clean up effects on unmount
+      if (chorusRef.current) {
+        chorusRef.current.dispose();
+        chorusRef.current = null;
+      }
+      if (reverbRef.current) {
+        reverbRef.current.dispose();
+        reverbRef.current = null;
+      }
     };
   }, []);
 
