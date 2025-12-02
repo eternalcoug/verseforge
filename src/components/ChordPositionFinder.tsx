@@ -54,32 +54,7 @@ export function ChordPositionFinder({ onNavigateToReference }: ChordPositionFind
   const [playingProgression, setPlayingProgression] = useState(false);
   const [progressionOpen, setProgressionOpen] = useState(false);
   const [hasImportedProgression, setHasImportedProgression] = useState(false);
-
-  useEffect(() => {
-    const context = loadChordContext();
-    if (context) {
-      setChordRoot(context.chord.replace(/[^A-G#]/g, ''));
-      const qualityMatch = context.chord.match(/(maj7|min7|m7|7|maj|min|m|sus2|sus4|dim|aug|°|\+)/i);
-      if (qualityMatch) {
-        const qualityStr = qualityMatch[0].toLowerCase();
-        if (qualityStr === 'maj7') setChordQuality('major7');
-        else if (qualityStr === 'min7' || qualityStr === 'm7') setChordQuality('minor7');
-        else if (qualityStr === '7') setChordQuality('dominant7');
-        else if (qualityStr === 'min' || qualityStr === 'm') setChordQuality('minor');
-        else if (qualityStr === 'sus2') setChordQuality('sus2');
-        else if (qualityStr === 'sus4') setChordQuality('sus4');
-        else if (qualityStr === 'dim' || qualityStr === '°') setChordQuality('diminished');
-        else if (qualityStr === 'aug' || qualityStr === '+') setChordQuality('augmented');
-      }
-      clearChordContext();
-      setTimeout(() => handleSearch(), 100);
-    }
-
-    const saved = loadProgression();
-    if (saved && saved.source === 'chord-reference') {
-      setHasImportedProgression(true);
-    }
-  }, []);
+  const [shouldAutoSearch, setShouldAutoSearch] = useState(false);
 
   const availableRoots = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
   const currentChordName = getChordName(chordRoot, chordQuality);
@@ -186,6 +161,48 @@ export function ChordPositionFinder({ onNavigateToReference }: ChordPositionFind
 
   const possibleKeys = chordType === 'standard' ? detectPossibleKeys(chordRoot, chordQuality) : [];
   const bestKey = possibleKeys.length > 0 ? possibleKeys[0] : null;
+
+  useEffect(() => {
+    const context = loadChordContext();
+    if (context) {
+      const root = context.chord.replace(/[^A-G#]/g, '');
+      if (root) setChordRoot(root);
+
+      const qualityMatch = context.chord.match(/(maj7|min7|m7|7|maj|min|m|sus2|sus4|dim|aug|°|\+)/i);
+      if (qualityMatch) {
+        const qualityStr = qualityMatch[0].toLowerCase();
+        if (qualityStr === 'maj7') setChordQuality('major7');
+        else if (qualityStr === 'min7' || qualityStr === 'm7') setChordQuality('minor7');
+        else if (qualityStr === '7') setChordQuality('dominant7');
+        else if (qualityStr === 'min' || qualityStr === 'm') setChordQuality('minor');
+        else if (qualityStr === 'sus2') setChordQuality('sus2');
+        else if (qualityStr === 'sus4') setChordQuality('sus4');
+        else if (qualityStr === 'dim' || qualityStr === '°') setChordQuality('diminished');
+        else if (qualityStr === 'aug' || qualityStr === '+') setChordQuality('augmented');
+      }
+      clearChordContext();
+      setShouldAutoSearch(true);
+    }
+
+    const saved = loadProgression();
+    if (saved && saved.source === 'chord-reference') {
+      setHasImportedProgression(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (shouldAutoSearch) {
+      if (chordType === 'standard') {
+        const searchChord = getChordName(chordRoot, chordQuality);
+        const positions = getChordPositions(searchChord);
+        setDisplayedPositions(positions);
+      } else {
+        const positions = generatePowerChordPositions(chordRoot);
+        setDisplayedPowerPositions(positions);
+      }
+      setShouldAutoSearch(false);
+    }
+  }, [shouldAutoSearch, chordRoot, chordQuality, chordType]);
 
   return (
     <div className="max-w-6xl mx-auto p-6">
