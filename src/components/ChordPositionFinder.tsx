@@ -10,7 +10,6 @@ import {
   getChordName,
   getChordNotes,
   calculateDifficulty,
-  getRelatedChords,
   getCommonProgressions,
   getProgressionChords,
   getFretRange
@@ -161,6 +160,70 @@ export function ChordPositionFinder({ onNavigateToReference }: ChordPositionFind
 
   const possibleKeys = chordType === 'standard' ? detectPossibleKeys(chordRoot, chordQuality) : [];
   const bestKey = possibleKeys.length > 0 ? possibleKeys[0] : null;
+
+  const getRelatedChordsArray = () => {
+    const notes = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+    const rootIndex = notes.indexOf(chordRoot);
+    const related: Array<{ root: string; quality: ChordQuality; relationship: string }> = [];
+
+    if (chordQuality === 'major') {
+      const relativeMinorIndex = (rootIndex - 3 + 12) % 12;
+      related.push({
+        root: notes[relativeMinorIndex],
+        quality: 'minor',
+        relationship: 'Relative minor'
+      });
+
+      related.push({
+        root: chordRoot,
+        quality: 'major7',
+        relationship: 'Major 7th'
+      });
+
+      const fourthIndex = (rootIndex + 5) % 12;
+      related.push({
+        root: notes[fourthIndex],
+        quality: 'major',
+        relationship: 'Subdominant'
+      });
+
+      const fifthIndex = (rootIndex + 7) % 12;
+      related.push({
+        root: notes[fifthIndex],
+        quality: 'major',
+        relationship: 'Dominant'
+      });
+    } else if (chordQuality === 'minor') {
+      const relativeMajorIndex = (rootIndex + 3) % 12;
+      related.push({
+        root: notes[relativeMajorIndex],
+        quality: 'major',
+        relationship: 'Relative major'
+      });
+
+      related.push({
+        root: chordRoot,
+        quality: 'minor7',
+        relationship: 'Minor 7th'
+      });
+
+      const fourthIndex = (rootIndex + 5) % 12;
+      related.push({
+        root: notes[fourthIndex],
+        quality: 'minor',
+        relationship: 'Subdominant'
+      });
+
+      const fifthIndex = (rootIndex + 7) % 12;
+      related.push({
+        root: notes[fifthIndex],
+        quality: 'minor',
+        relationship: 'Dominant'
+      });
+    }
+
+    return related.slice(0, 4);
+  };
 
   useEffect(() => {
     const context = loadChordContext();
@@ -487,7 +550,7 @@ export function ChordPositionFinder({ onNavigateToReference }: ChordPositionFind
             Related Chords
           </h4>
           <div className="flex flex-wrap gap-2">
-            {getRelatedChords(chordRoot, chordQuality).map((relatedChord, index) => (
+            {getRelatedChordsArray().map((relatedChord, index) => (
               <button
                 key={index}
                 onClick={() => {
