@@ -380,11 +380,11 @@ export function Tuner() {
         )}
       </section>
 
-      <section className="tuning-tips bg-gray-50 p-6 rounded-xl border-2 border-gray-200">
+      <section className="tuning-tips bg-[#1A1A1A] border border-[#2A2A2A] p-6 rounded-xl shadow-md">
         <h3 className="text-xl font-bold text-[#E5E5E5] mb-4 flex items-center gap-2">
           <span>💡</span> Tuning Tips
         </h3>
-        <ul className="space-y-2 text-[#E5E5E5]">
+        <ul className="space-y-2 text-[#A3A3A3]">
           <li className="flex items-start gap-2">
             <span className="text-blue-500 font-bold">•</span>
             <span>Click a string to hear a continuous reference tone - it will play until you stop it</span>
