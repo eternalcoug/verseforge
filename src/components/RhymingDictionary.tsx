@@ -204,10 +204,10 @@ const RhymingDictionary: React.FC = () => {
             <div className="flex gap-2">
               <button
                 onClick={() => setSyllableFilter(null)}
-                className={`px-3 py-1 rounded ${
+                className={`px-3 py-1 rounded border-2 transition-all font-semibold ${
                   syllableFilter === null
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-200 hover:bg-gray-300'
+                    ? 'bg-blue-600 text-white border-blue-600'
+                    : 'bg-[#242424] text-[#E5E5E5] border-[#2A2A2A] hover:border-blue-400 hover:bg-[#2A2A2A]'
                 }`}
               >
                 All
@@ -216,10 +216,10 @@ const RhymingDictionary: React.FC = () => {
                 <button
                   key={num}
                   onClick={() => setSyllableFilter(num)}
-                  className={`px-3 py-1 rounded ${
+                  className={`px-3 py-1 rounded border-2 transition-all font-semibold ${
                     syllableFilter === num
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-200 hover:bg-gray-300'
+                      ? 'bg-blue-600 text-white border-blue-600'
+                      : 'bg-[#242424] text-[#E5E5E5] border-[#2A2A2A] hover:border-blue-400 hover:bg-[#2A2A2A]'
                   }`}
                 >
                   {num}
