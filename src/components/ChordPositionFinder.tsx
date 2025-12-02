@@ -10,11 +10,12 @@ import {
   getChordName,
   getChordNotes,
   calculateDifficulty,
+  getRelatedChords,
   getCommonProgressions,
   getProgressionChords,
   getFretRange
 } from '../utils/chordEnhancements';
-import { saveProgression, loadProgression, loadChordContext, clearChordContext } from '../utils/progressionManager';
+import { saveProgression, loadProgression, clearProgression, loadChordContext, clearChordContext } from '../utils/progressionManager';
 import { detectPossibleKeys, getBestKeyMatch } from '../utils/keyDetection';
 
 const playerInstance = new ProgressionPlayer();
