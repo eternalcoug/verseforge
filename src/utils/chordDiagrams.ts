@@ -45,3 +45,55 @@ export const CHORD_DIAGRAMS: Record<string, ChordDiagram> = {
   'A#°': { chord: 'A#°', frets: ['x', 1, 2, 3, 2, 'x'], fingers: [0, 1, 2, 4, 3, 0], baseFret: 1 },
   'B°': { chord: 'B°', frets: ['x', 2, 3, 4, 3, 'x'], fingers: [0, 1, 2, 4, 3, 0], baseFret: 1 },
 };
+
+export const CHORD_ALTERNATIVES: Record<string, ChordDiagram[]> = {
+  'C': [
+    { chord: 'C', frets: ['x', 3, 2, 0, 1, 0], fingers: [0, 3, 2, 0, 1, 0], baseFret: 1 },
+    { chord: 'C', frets: ['x', 3, 5, 5, 5, 3], fingers: [0, 1, 3, 4, 5, 1], baseFret: 1 },
+    { chord: 'C', frets: [3, 3, 2, 0, 1, 0], fingers: [3, 4, 2, 0, 1, 0], baseFret: 1 },
+  ],
+  'D': [
+    { chord: 'D', frets: ['x', 'x', 0, 2, 3, 2], fingers: [0, 0, 0, 1, 3, 2], baseFret: 1 },
+    { chord: 'D', frets: ['x', 5, 7, 7, 7, 5], fingers: [0, 1, 3, 4, 5, 1], baseFret: 1 },
+    { chord: 'D', frets: [5, 5, 7, 7, 7, 5], fingers: [1, 1, 3, 4, 5, 1], baseFret: 1 },
+  ],
+  'E': [
+    { chord: 'E', frets: [0, 2, 2, 1, 0, 0], fingers: [0, 2, 3, 1, 0, 0], baseFret: 1 },
+    { chord: 'E', frets: [0, 7, 9, 9, 9, 7], fingers: [0, 1, 3, 4, 5, 1], baseFret: 1 },
+    { chord: 'E', frets: ['x', 7, 9, 9, 9, 'x'], fingers: [0, 1, 3, 4, 5, 0], baseFret: 1 },
+  ],
+  'F': [
+    { chord: 'F', frets: [1, 3, 3, 2, 1, 1], fingers: [1, 3, 4, 2, 1, 1], baseFret: 1 },
+    { chord: 'F', frets: ['x', 'x', 3, 2, 1, 1], fingers: [0, 0, 3, 2, 1, 1], baseFret: 1 },
+    { chord: 'F', frets: [1, 3, 3, 2, 1, 1], fingers: [1, 4, 5, 3, 1, 1], baseFret: 1 },
+  ],
+  'G': [
+    { chord: 'G', frets: [3, 2, 0, 0, 0, 3], fingers: [2, 1, 0, 0, 0, 3], baseFret: 1 },
+    { chord: 'G', frets: [3, 5, 5, 4, 3, 3], fingers: [1, 3, 4, 2, 1, 1], baseFret: 1 },
+    { chord: 'G', frets: [3, 2, 0, 0, 3, 3], fingers: [2, 1, 0, 0, 3, 4], baseFret: 1 },
+  ],
+  'A': [
+    { chord: 'A', frets: ['x', 0, 2, 2, 2, 0], fingers: [0, 0, 1, 2, 3, 0], baseFret: 1 },
+    { chord: 'A', frets: [5, 7, 7, 6, 5, 5], fingers: [1, 3, 4, 2, 1, 1], baseFret: 1 },
+    { chord: 'A', frets: ['x', 0, 2, 2, 2, 5], fingers: [0, 0, 1, 2, 3, 4], baseFret: 1 },
+  ],
+  'Am': [
+    { chord: 'Am', frets: ['x', 0, 2, 2, 1, 0], fingers: [0, 0, 2, 3, 1, 0], baseFret: 1 },
+    { chord: 'Am', frets: [5, 7, 7, 5, 5, 5], fingers: [1, 3, 4, 1, 1, 1], baseFret: 1 },
+    { chord: 'Am', frets: ['x', 0, 2, 2, 1, 3], fingers: [0, 0, 2, 3, 1, 4], baseFret: 1 },
+  ],
+  'Dm': [
+    { chord: 'Dm', frets: ['x', 'x', 0, 2, 3, 1], fingers: [0, 0, 0, 2, 3, 1], baseFret: 1 },
+    { chord: 'Dm', frets: ['x', 5, 7, 7, 6, 5], fingers: [0, 1, 3, 4, 2, 1], baseFret: 1 },
+    { chord: 'Dm', frets: [1, 0, 0, 2, 3, 1], fingers: [1, 0, 0, 2, 3, 4], baseFret: 1 },
+  ],
+  'Em': [
+    { chord: 'Em', frets: [0, 2, 2, 0, 0, 0], fingers: [0, 2, 3, 0, 0, 0], baseFret: 1 },
+    { chord: 'Em', frets: [0, 7, 9, 9, 8, 7], fingers: [0, 1, 3, 4, 2, 1], baseFret: 1 },
+    { chord: 'Em', frets: ['x', 7, 9, 9, 8, 'x'], fingers: [0, 1, 3, 4, 2, 0], baseFret: 1 },
+  ],
+};
+
+export function getChordAlternatives(chordName: string): ChordDiagram[] {
+  return CHORD_ALTERNATIVES[chordName] || [CHORD_DIAGRAMS[chordName]].filter(Boolean);
+}

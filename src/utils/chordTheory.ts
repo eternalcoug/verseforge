@@ -32,12 +32,17 @@ function getChordDisplay(root: string, quality: ChordQuality): string {
   }
 }
 
-export function getDiatonicChords(key: string, mode: 'major' | 'minor'): DiatonicChord[] {
+export function getDiatonicChords(key: string, mode: 'major' | 'minor', useSevenths: boolean = false): DiatonicChord[] {
   if (mode === 'major') {
     // Major key diatonic chords: I, ii, iii, IV, V, vi, vii°
-    const intervals = [0, 2, 4, 5, 7, 9, 11]; // Scale degrees
-    const qualities: ChordQuality[] = ['major', 'minor', 'minor', 'major', 'major', 'minor', 'diminished'];
-    const romanNumerals = ['I', 'ii', 'iii', 'IV', 'V', 'vi', 'vii°'];
+    const intervals = [0, 2, 4, 5, 7, 9, 11];
+    const triadQualities: ChordQuality[] = ['major', 'minor', 'minor', 'major', 'major', 'minor', 'diminished'];
+    const seventhQualities: ChordQuality[] = ['maj7', 'min7', 'min7', 'maj7', 'dom7', 'min7', 'm7b5'];
+    const triadRomanNumerals = ['I', 'ii', 'iii', 'IV', 'V', 'vi', 'vii°'];
+    const seventhRomanNumerals = ['Imaj7', 'ii7', 'iii7', 'IVmaj7', 'V7', 'vi7', 'viiø7'];
+
+    const qualities = useSevenths ? seventhQualities : triadQualities;
+    const romanNumerals = useSevenths ? seventhRomanNumerals : triadRomanNumerals;
 
     return intervals.map((interval, i) => {
       const root = transposeNote(key, interval);
@@ -52,8 +57,13 @@ export function getDiatonicChords(key: string, mode: 'major' | 'minor'): Diatoni
   } else {
     // Minor key diatonic chords: i, ii°, ♭III, iv, v, ♭VI, ♭VII
     const intervals = [0, 2, 3, 5, 7, 8, 10];
-    const qualities: ChordQuality[] = ['minor', 'diminished', 'major', 'minor', 'minor', 'major', 'major'];
-    const romanNumerals = ['i', 'ii°', '♭III', 'iv', 'v', '♭VI', '♭VII'];
+    const triadQualities: ChordQuality[] = ['minor', 'diminished', 'major', 'minor', 'minor', 'major', 'major'];
+    const seventhQualities: ChordQuality[] = ['min7', 'm7b5', 'maj7', 'min7', 'min7', 'maj7', 'dom7'];
+    const triadRomanNumerals = ['i', 'ii°', '♭III', 'iv', 'v', '♭VI', '♭VII'];
+    const seventhRomanNumerals = ['i7', 'iiø7', '♭IIImaj7', 'iv7', 'v7', '♭VImaj7', '♭VII7'];
+
+    const qualities = useSevenths ? seventhQualities : triadQualities;
+    const romanNumerals = useSevenths ? seventhRomanNumerals : triadRomanNumerals;
 
     return intervals.map((interval, i) => {
       const root = transposeNote(key, interval);
@@ -68,12 +78,17 @@ export function getDiatonicChords(key: string, mode: 'major' | 'minor'): Diatoni
   }
 }
 
-export function getBorrowedChords(key: string, mode: 'major' | 'minor'): DiatonicChord[] {
+export function getBorrowedChords(key: string, mode: 'major' | 'minor', useSevenths: boolean = false): DiatonicChord[] {
   if (mode === 'major') {
     // Borrowing from parallel minor
     const intervals = [0, 2, 3, 5, 7, 8, 10];
-    const qualities: ChordQuality[] = ['minor', 'm7b5', 'major', 'minor', 'minor', 'major', 'major'];
-    const romanNumerals = ['i', 'iiø', '♭III', 'iv', 'v', '♭VI', '♭VII'];
+    const triadQualities: ChordQuality[] = ['minor', 'm7b5', 'major', 'minor', 'minor', 'major', 'major'];
+    const seventhQualities: ChordQuality[] = ['min7', 'm7b5', 'maj7', 'min7', 'min7', 'maj7', 'dom7'];
+    const triadRomanNumerals = ['i', 'iiø', '♭III', 'iv', 'v', '♭VI', '♭VII'];
+    const seventhRomanNumerals = ['i7', 'iiø7', '♭IIImaj7', 'iv7', 'v7', '♭VImaj7', '♭VII7'];
+
+    const qualities = useSevenths ? seventhQualities : triadQualities;
+    const romanNumerals = useSevenths ? seventhRomanNumerals : triadRomanNumerals;
 
     return intervals.map((interval, i) => {
       const root = transposeNote(key, interval);
@@ -92,8 +107,13 @@ export function getBorrowedChords(key: string, mode: 'major' | 'minor'): Diatoni
   } else {
     // Borrowing from parallel major
     const intervals = [0, 2, 4, 5, 7, 9, 11];
-    const qualities: ChordQuality[] = ['major', 'major', 'major', 'major', 'major', 'major', 'diminished'];
-    const romanNumerals = ['I', 'II', 'III', 'IV', 'V', 'VI', 'vii°'];
+    const triadQualities: ChordQuality[] = ['major', 'major', 'major', 'major', 'major', 'major', 'diminished'];
+    const seventhQualities: ChordQuality[] = ['maj7', 'dom7', 'maj7', 'maj7', 'dom7', 'maj7', 'm7b5'];
+    const triadRomanNumerals = ['I', 'II', 'III', 'IV', 'V', 'VI', 'vii°'];
+    const seventhRomanNumerals = ['Imaj7', 'II7', 'IIImaj7', 'IVmaj7', 'V7', 'VImaj7', 'viiø7'];
+
+    const qualities = useSevenths ? seventhQualities : triadQualities;
+    const romanNumerals = useSevenths ? seventhRomanNumerals : triadRomanNumerals;
 
     return intervals.map((interval, i) => {
       const root = transposeNote(key, interval);

@@ -153,6 +153,7 @@ export function ChordReference({ onNavigateToChordFinder }: ChordReferenceProps 
   const [progression, setProgression] = useState<DiatonicChord[]>([]);
   const [playingProgressionIndex, setPlayingProgressionIndex] = useState<number | null>(null);
   const [hasImportedProgression, setHasImportedProgression] = useState(false);
+  const [exportSuccess, setExportSuccess] = useState(false);
 
   useEffect(() => {
     const saved = loadProgression();
@@ -165,8 +166,8 @@ export function ChordReference({ onNavigateToChordFinder }: ChordReferenceProps 
   const [genreFilter, setGenreFilter] = useState<string>('all');
   const [showMoreProgressions, setShowMoreProgressions] = useState(false);
 
-  const diatonicChords = getDiatonicChords(selectedKey, selectedMode);
-  const borrowedChords = getBorrowedChords(selectedKey, selectedMode);
+  const diatonicChords = getDiatonicChords(selectedKey, selectedMode, chordType === 'sevenths');
+  const borrowedChords = getBorrowedChords(selectedKey, selectedMode, chordType === 'sevenths');
 
   // Helper to get chord notes
   const getChordNotes = (chord: DiatonicChord): string[] => {
@@ -180,8 +181,16 @@ export function ChordReference({ onNavigateToChordFinder }: ChordReferenceProps 
       intervals = [0, 3, 7];
     } else if (chord.quality === 'diminished') {
       intervals = [0, 3, 6];
+    } else if (chord.quality === 'maj7') {
+      intervals = [0, 4, 7, 11];
+    } else if (chord.quality === 'min7') {
+      intervals = [0, 3, 7, 10];
+    } else if (chord.quality === 'dom7') {
+      intervals = [0, 4, 7, 10];
     } else if (chord.quality === 'm7b5') {
       intervals = [0, 3, 6, 10];
+    } else if (chord.quality === 'dim7') {
+      intervals = [0, 3, 6, 9];
     } else {
       intervals = [0, 4, 7];
     }
@@ -279,6 +288,9 @@ export function ChordReference({ onNavigateToChordFinder }: ChordReferenceProps 
       source: 'chord-reference',
       timestamp: Date.now()
     });
+
+    setExportSuccess(true);
+    setTimeout(() => setExportSuccess(false), 3000);
   };
 
   // Phase 2: Import progression
@@ -571,29 +583,39 @@ export function ChordReference({ onNavigateToChordFinder }: ChordReferenceProps 
         )}
 
         {progression.length > 0 && (
-          <div className="flex flex-wrap gap-3">
-            <button
-              onClick={playProgression}
-              className="px-6 py-3 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-lg transition-all flex items-center gap-2"
-            >
-              <Play size={18} />
-              Play Progression
-            </button>
-            <button
-              onClick={exportProgression}
-              className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-all flex items-center gap-2"
-            >
-              <Download size={18} />
-              Export to Chord Finder
-            </button>
-            <button
-              onClick={() => setProgression([])}
-              className="px-6 py-3 bg-transparent border border-red-500 text-red-500 hover:bg-red-500 hover:text-white font-semibold rounded-lg transition-all flex items-center gap-2"
-            >
-              <Trash2 size={18} />
-              Clear
-            </button>
-          </div>
+          <>
+            <div className="flex flex-wrap gap-3">
+              <button
+                onClick={playProgression}
+                className="px-6 py-3 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-lg transition-all flex items-center gap-2"
+              >
+                <Play size={18} />
+                Play Progression
+              </button>
+              <button
+                onClick={exportProgression}
+                className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-all flex items-center gap-2"
+              >
+                <Download size={18} />
+                Export to Chord Finder
+              </button>
+              <button
+                onClick={() => setProgression([])}
+                className="px-6 py-3 bg-transparent border border-red-500 text-red-500 hover:bg-red-500 hover:text-white font-semibold rounded-lg transition-all flex items-center gap-2"
+              >
+                <Trash2 size={18} />
+                Clear
+              </button>
+            </div>
+            {exportSuccess && (
+              <div className="mt-3 p-3 bg-green-900/20 border border-green-600 rounded-lg">
+                <p className="text-green-400 font-semibold flex items-center gap-2">
+                  <Download size={16} />
+                  Progression exported successfully! Go to Chord Finder to import it.
+                </p>
+              </div>
+            )}
+          </>
         )}
       </div>
 
