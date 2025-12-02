@@ -103,7 +103,7 @@ function App() {
 
       <div className="container mx-auto px-4 py-8 max-w-7xl relative z-10 flex-1">
 
-        {activeTab === 'home' && <Home />}
+        {activeTab === 'home' && <Home onGetStarted={(tab) => setActiveTab(tab as ActiveTab)} />}
 
         {activeTab === 'generator' && (
         <>
