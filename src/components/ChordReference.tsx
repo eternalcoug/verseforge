@@ -798,10 +798,8 @@ export function ChordReference({ onNavigateToChordFinder }: ChordReferenceProps 
                 </button>
                 <button
                   onClick={() => {
-                    // Store selected chord in localStorage for Chord Finder to pick up
-                    localStorage.setItem('selectedChord', selectedChord.display);
-                    // Navigate to Chord Finder by updating window location
-                    window.location.hash = '#/chord-finder';
+                    navigateToChordFinder(selectedChord);
+                    setSelectedChord(null);
                   }}
                   className="flex-1 px-6 py-3 bg-transparent border border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white font-semibold rounded-lg transition-all flex items-center justify-center gap-2"
                 >
