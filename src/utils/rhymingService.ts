@@ -62,37 +62,76 @@ export async function getPerfectRhymes(word: string, maxResults: number = 100): 
 
 export async function getNearRhymes(word: string, maxResults: number = 100): Promise<RhymeResult[]> {
   try {
-    const url = `${DATAMUSE_API}?sl=${encodeURIComponent(word)}&v=enwiki&max=${maxResults * 2}&md=s`;
+    console.log('Fetching near rhymes for:', word);
 
-    console.log('Fetching near rhymes:', url);
+    const searchWord = word.toLowerCase();
+    const allNearRhymes: RhymeResult[] = [];
+    const seenWords = new Set<string>();
 
-    const response = await fetchWithTimeout(url, 10000);
+    try {
+      const nryUrl = `${DATAMUSE_API}?rel_nry=${encodeURIComponent(word)}&max=${maxResults * 2}&md=s`;
+      console.log('Trying rel_nry (approximate rhymes):', nryUrl);
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      const nryResponse = await fetchWithTimeout(nryUrl, 8000);
+      if (nryResponse.ok) {
+        const nryData = await nryResponse.json();
+        console.log('rel_nry returned:', nryData.length, 'results');
+
+        nryData.forEach((item: any) => {
+          const itemWord = item.word.toLowerCase();
+          if (itemWord !== searchWord && !seenWords.has(itemWord)) {
+            seenWords.add(itemWord);
+            allNearRhymes.push({
+              word: item.word,
+              score: item.score || 0,
+              numSyllables: item.numSyllables || 0,
+              tags: item.tags || []
+            });
+          }
+        });
+      }
+    } catch (nryError) {
+      console.warn('rel_nry failed, continuing with other methods:', nryError);
     }
 
-    const data = await response.json();
+    if (allNearRhymes.length < maxResults / 2) {
+      try {
+        const slUrl = `${DATAMUSE_API}?sl=${encodeURIComponent(word)}&max=${maxResults * 2}&md=s`;
+        console.log('Trying sl (sounds-like):', slUrl);
 
-    console.log('Near rhymes raw response:', data);
+        const slResponse = await fetchWithTimeout(slUrl, 8000);
+        if (slResponse.ok) {
+          const slData = await slResponse.json();
+          console.log('sl returned:', slData.length, 'results');
 
-    const nearRhymes = data
-      .filter((item: any) => {
-        const itemWord = item.word.toLowerCase();
-        const searchWord = word.toLowerCase();
-        return itemWord !== searchWord && item.score < 100;
-      })
-      .map((item: any) => ({
-        word: item.word,
-        score: item.score || 0,
-        numSyllables: item.numSyllables || 0,
-        tags: item.tags || []
-      }))
-      .slice(0, maxResults);
+          slData
+            .filter((item: any) => {
+              const itemWord = item.word.toLowerCase();
+              return itemWord !== searchWord &&
+                     item.score < 100 &&
+                     !seenWords.has(itemWord);
+            })
+            .forEach((item: any) => {
+              seenWords.add(item.word.toLowerCase());
+              allNearRhymes.push({
+                word: item.word,
+                score: item.score || 0,
+                numSyllables: item.numSyllables || 0,
+                tags: item.tags || []
+              });
+            });
+        }
+      } catch (slError) {
+        console.warn('sl failed:', slError);
+      }
+    }
 
-    console.log('Near rhymes filtered:', nearRhymes);
+    allNearRhymes.sort((a, b) => b.score - a.score);
 
-    return nearRhymes;
+    const finalResults = allNearRhymes.slice(0, maxResults);
+    console.log('Near rhymes final count:', finalResults.length);
+
+    return finalResults;
   } catch (error) {
     console.error('Error fetching near rhymes:', error);
     throw error;
