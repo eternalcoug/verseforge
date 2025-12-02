@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
-import { BookOpen, Volume2, Star, X, Music, Play, Guitar, Plus, Trash2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { BookOpen, Volume2, Star, X, Music, Play, Guitar, Plus, Trash2, Download, Upload } from 'lucide-react';
 import { getDiatonicChords, getBorrowedChords, DiatonicChord } from '../utils/chordTheory';
 import { ProgressionPlayer } from '../utils/audioPlayer';
+import { saveProgression, loadProgression, saveChordContext, clearProgression } from '../utils/progressionManager';
 
 const KEY_OPTIONS = [
   'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'
@@ -133,7 +134,11 @@ const COMMON_PROGRESSIONS: CommonProgression[] = [
 // FEATURE 2: Chord type options
 type ChordType = 'triads' | 'sevenths' | 'extended';
 
-export function ChordReference() {
+interface ChordReferenceProps {
+  onNavigateToChordFinder?: () => void;
+}
+
+export function ChordReference({ onNavigateToChordFinder }: ChordReferenceProps = {}) {
   const [selectedKey, setSelectedKey] = useState('C');
   const [selectedMode, setSelectedMode] = useState<'major' | 'minor'>('major');
   const [playingChord, setPlayingChord] = useState<string | null>(null);
@@ -147,6 +152,14 @@ export function ChordReference() {
   // FEATURE 3: Progression builder state
   const [progression, setProgression] = useState<DiatonicChord[]>([]);
   const [playingProgressionIndex, setPlayingProgressionIndex] = useState<number | null>(null);
+  const [hasImportedProgression, setHasImportedProgression] = useState(false);
+
+  useEffect(() => {
+    const saved = loadProgression();
+    if (saved && saved.source === 'chord-finder') {
+      setHasImportedProgression(true);
+    }
+  }, []);
 
   // FEATURE 4: Common progressions state
   const [genreFilter, setGenreFilter] = useState<string>('all');
@@ -241,7 +254,7 @@ export function ChordReference() {
   };
 
   // FEATURE 4: Load common progression
-  const loadProgression = (progressionNumerals: string[]) => {
+  const loadCommonProgression = (progressionNumerals: string[]) => {
     const allChords = [...diatonicChords, ...borrowedChords];
     const chords = progressionNumerals.map(numeral => {
       return allChords.find(c => c.romanNumeral === numeral);
@@ -253,6 +266,49 @@ export function ChordReference() {
     setTimeout(() => {
       document.getElementById('progression-builder')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }, 100);
+  };
+
+  // Phase 2: Export progression
+  const exportProgression = () => {
+    if (progression.length === 0) return;
+
+    saveProgression({
+      chords: progression.map(c => c.display),
+      key: selectedKey,
+      mode: selectedMode,
+      source: 'chord-reference',
+      timestamp: Date.now()
+    });
+  };
+
+  // Phase 2: Import progression
+  const importProgression = () => {
+    const saved = loadProgression();
+    if (!saved) return;
+
+    const allChords = [...diatonicChords, ...borrowedChords];
+    const importedChords: DiatonicChord[] = [];
+
+    saved.chords.forEach(chordName => {
+      const found = allChords.find(c => c.display === chordName);
+      if (found) {
+        importedChords.push(found);
+      }
+    });
+
+    if (importedChords.length > 0) {
+      setProgression(importedChords);
+      setHasImportedProgression(false);
+      clearProgression();
+    }
+  };
+
+  // Phase 1: Navigate to Chord Finder with context
+  const navigateToChordFinder = (chord: DiatonicChord) => {
+    saveChordContext(chord.display, selectedKey);
+    if (onNavigateToChordFinder) {
+      onNavigateToChordFinder();
+    }
   };
 
   // Filter progressions by genre
@@ -272,6 +328,10 @@ export function ChordReference() {
           <h1 className="text-3xl font-bold text-[#E5E5E5]">Chord Reference</h1>
         </div>
         <p className="text-[#A3A3A3]">Explore diatonic chords in any key and scale</p>
+        <p className="text-sm text-[#666] mt-2">
+          <Guitar size={14} className="inline mr-1" />
+          Hover over any chord to see guitar positions in Chord Finder
+        </p>
       </div>
 
       <div className="bg-[#1A1A1A] rounded-lg shadow-xl border-2 border-[#2A2A2A] p-6">
@@ -356,28 +416,36 @@ export function ChordReference() {
         </div>
         <div className="grid grid-cols-7 gap-2 mb-6">
           {diatonicChords.map((chord, index) => (
-            <button
-              key={index}
-              onClick={(e) => handleChordClick(chord, e)}
-              className={`
-                relative p-4 rounded-lg border-2 transition-all cursor-pointer
-                ${playingChord === chord.display
-                  ? 'bg-blue-600 border-blue-700 text-white scale-105 shadow-lg'
-                  : 'bg-blue-100 border-blue-300 text-blue-900 hover:bg-blue-200 hover:border-blue-400 hover:scale-103 hover:shadow-md'
-                }
-              `}
-              style={{
-                transition: 'all 0.2s ease'
-              }}
-            >
-              <div className="flex flex-col items-center gap-1">
-                <span className="text-lg font-bold">{chord.display}</span>
-                <span className="text-sm font-medium opacity-80">{chord.romanNumeral}</span>
-                {playingChord === chord.display && (
-                  <Volume2 size={16} className="absolute top-1 right-1 animate-pulse" />
-                )}
-              </div>
-            </button>
+            <div key={index} className="relative group">
+              <button
+                onClick={(e) => handleChordClick(chord, e)}
+                className={`
+                  relative p-4 rounded-lg border-2 transition-all cursor-pointer w-full
+                  ${playingChord === chord.display
+                    ? 'bg-blue-600 border-blue-700 text-white scale-105 shadow-lg'
+                    : 'bg-blue-100 border-blue-300 text-blue-900 hover:bg-blue-200 hover:border-blue-400 hover:scale-103 hover:shadow-md'
+                  }
+                `}
+                style={{
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                <div className="flex flex-col items-center gap-1">
+                  <span className="text-lg font-bold">{chord.display}</span>
+                  <span className="text-sm font-medium opacity-80">{chord.romanNumeral}</span>
+                  {playingChord === chord.display && (
+                    <Volume2 size={16} className="absolute top-1 right-1 animate-pulse" />
+                  )}
+                </div>
+              </button>
+              <button
+                onClick={() => navigateToChordFinder(chord)}
+                className="absolute top-1 left-1 opacity-0 group-hover:opacity-100 transition-opacity p-1 bg-blue-900/80 rounded hover:bg-blue-800 z-10"
+                title="View guitar positions"
+              >
+                <Guitar size={12} className="text-white" />
+              </button>
+            </div>
           ))}
         </div>
       </div>
@@ -390,35 +458,43 @@ export function ChordReference() {
         </div>
         <div className="grid grid-cols-7 gap-2">
           {borrowedChords.map((chord, index) => (
-            <button
-              key={index}
-              onClick={(e) => handleChordClick(chord, e)}
-              className={`
-                relative p-4 rounded-lg border-2 transition-all cursor-pointer
-                ${playingChord === chord.display
-                  ? 'bg-orange-600 border-orange-700 text-white scale-105 shadow-lg'
-                  : 'bg-orange-100 border-orange-300 text-orange-900 hover:bg-orange-200 hover:border-orange-400 hover:scale-103 hover:shadow-md'
-                }
-              `}
-              style={{
-                transition: 'all 0.2s ease'
-              }}
-            >
-              <div className="flex flex-col items-center gap-1">
-                <span className="text-lg font-bold">{chord.display}</span>
-                <span className="text-sm font-medium opacity-80">{chord.romanNumeral}</span>
-                {chord.isCommonInCountry && (
-                  <Star
-                    size={14}
-                    className="absolute top-1 right-1 fill-yellow-400 text-yellow-500"
-                    title="Common in country music"
-                  />
-                )}
-                {playingChord === chord.display && (
-                  <Volume2 size={16} className="absolute top-1 left-1 animate-pulse" />
-                )}
-              </div>
-            </button>
+            <div key={index} className="relative group">
+              <button
+                onClick={(e) => handleChordClick(chord, e)}
+                className={`
+                  relative p-4 rounded-lg border-2 transition-all cursor-pointer w-full
+                  ${playingChord === chord.display
+                    ? 'bg-orange-600 border-orange-700 text-white scale-105 shadow-lg'
+                    : 'bg-orange-100 border-orange-300 text-orange-900 hover:bg-orange-200 hover:border-orange-400 hover:scale-103 hover:shadow-md'
+                  }
+                `}
+                style={{
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                <div className="flex flex-col items-center gap-1">
+                  <span className="text-lg font-bold">{chord.display}</span>
+                  <span className="text-sm font-medium opacity-80">{chord.romanNumeral}</span>
+                  {chord.isCommonInCountry && (
+                    <Star
+                      size={14}
+                      className="absolute top-1 right-1 fill-yellow-400 text-yellow-500"
+                      title="Common in country music"
+                    />
+                  )}
+                  {playingChord === chord.display && (
+                    <Volume2 size={16} className="absolute top-1 left-1 animate-pulse" />
+                  )}
+                </div>
+              </button>
+              <button
+                onClick={() => navigateToChordFinder(chord)}
+                className="absolute top-1 left-1 opacity-0 group-hover:opacity-100 transition-opacity p-1 bg-orange-900/80 rounded hover:bg-orange-800 z-10"
+                title="View guitar positions"
+              >
+                <Guitar size={12} className="text-white" />
+              </button>
+            </div>
           ))}
         </div>
         <p className="text-sm text-[#A3A3A3] mt-3 flex items-center gap-2">
@@ -481,14 +557,34 @@ export function ChordReference() {
           )}
         </div>
 
+        {hasImportedProgression && progression.length === 0 && (
+          <div className="mb-4 p-3 bg-blue-900/20 border border-blue-600/50 rounded-lg">
+            <p className="text-sm text-blue-300 mb-2">Progression available from Chord Finder</p>
+            <button
+              onClick={importProgression}
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-all flex items-center gap-2"
+            >
+              <Upload size={16} />
+              Import Progression
+            </button>
+          </div>
+        )}
+
         {progression.length > 0 && (
-          <div className="flex gap-3">
+          <div className="flex flex-wrap gap-3">
             <button
               onClick={playProgression}
               className="px-6 py-3 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-lg transition-all flex items-center gap-2"
             >
               <Play size={18} />
               Play Progression
+            </button>
+            <button
+              onClick={exportProgression}
+              className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-all flex items-center gap-2"
+            >
+              <Download size={18} />
+              Export to Chord Finder
             </button>
             <button
               onClick={() => setProgression([])}
@@ -587,7 +683,7 @@ export function ChordReference() {
 
                 <div className="flex gap-2">
                   <button
-                    onClick={() => loadProgression(prog.numerals)}
+                    onClick={() => loadCommonProgression(prog.numerals)}
                     className="px-4 py-2 bg-transparent border border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white rounded-lg transition-all font-medium text-sm"
                   >
                     Load This

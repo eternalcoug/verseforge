@@ -359,9 +359,9 @@ function App() {
         </>
         )}
 
-        {activeTab === 'reference' && <ChordReference />}
+        {activeTab === 'reference' && <ChordReference onNavigateToChordFinder={() => setActiveTab('positions')} />}
 
-        {activeTab === 'positions' && <ChordPositionFinder />}
+        {activeTab === 'positions' && <ChordPositionFinder onNavigateToReference={() => setActiveTab('reference')} />}
 
         {activeTab === 'scales' && <ScaleVisualizer />}
 

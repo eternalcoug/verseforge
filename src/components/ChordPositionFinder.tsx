@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Search, Play, MapPin, Plus, Music, Info, ChevronDown } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Search, Play, MapPin, Plus, Music, Info, ChevronDown, BookOpen, Download, Upload } from 'lucide-react';
 import { getChordPositions, CHORD_POSITIONS, ChordPosition } from '../utils/chordPositions';
 import { generatePowerChordPositions, PowerChordPosition } from '../utils/powerChordTheory';
 import { GuitarDiagram } from './GuitarDiagram';
@@ -15,6 +15,8 @@ import {
   getProgressionChords,
   getFretRange
 } from '../utils/chordEnhancements';
+import { saveProgression, loadProgression, loadChordContext, clearChordContext } from '../utils/progressionManager';
+import { detectPossibleKeys, getBestKeyMatch } from '../utils/keyDetection';
 
 const playerInstance = new ProgressionPlayer();
 
@@ -37,7 +39,11 @@ function convertPowerChordToChordPosition(powerPos: PowerChordPosition): ChordPo
   };
 }
 
-export function ChordPositionFinder() {
+interface ChordPositionFinderProps {
+  onNavigateToReference?: () => void;
+}
+
+export function ChordPositionFinder({ onNavigateToReference }: ChordPositionFinderProps = {}) {
   const [chordRoot, setChordRoot] = useState('C');
   const [chordQuality, setChordQuality] = useState<ChordQuality>('major');
   const [chordType, setChordType] = useState<'standard' | 'power'>('standard');
@@ -47,6 +53,33 @@ export function ChordPositionFinder() {
   const [progression, setProgression] = useState<string[]>([]);
   const [playingProgression, setPlayingProgression] = useState(false);
   const [progressionOpen, setProgressionOpen] = useState(false);
+  const [hasImportedProgression, setHasImportedProgression] = useState(false);
+
+  useEffect(() => {
+    const context = loadChordContext();
+    if (context) {
+      setChordRoot(context.chord.replace(/[^A-G#]/g, ''));
+      const qualityMatch = context.chord.match(/(maj7|min7|m7|7|maj|min|m|sus2|sus4|dim|aug|°|\+)/i);
+      if (qualityMatch) {
+        const qualityStr = qualityMatch[0].toLowerCase();
+        if (qualityStr === 'maj7') setChordQuality('major7');
+        else if (qualityStr === 'min7' || qualityStr === 'm7') setChordQuality('minor7');
+        else if (qualityStr === '7') setChordQuality('dominant7');
+        else if (qualityStr === 'min' || qualityStr === 'm') setChordQuality('minor');
+        else if (qualityStr === 'sus2') setChordQuality('sus2');
+        else if (qualityStr === 'sus4') setChordQuality('sus4');
+        else if (qualityStr === 'dim' || qualityStr === '°') setChordQuality('diminished');
+        else if (qualityStr === 'aug' || qualityStr === '+') setChordQuality('augmented');
+      }
+      clearChordContext();
+      setTimeout(() => handleSearch(), 100);
+    }
+
+    const saved = loadProgression();
+    if (saved && saved.source === 'chord-reference') {
+      setHasImportedProgression(true);
+    }
+  }, []);
 
   const availableRoots = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
   const currentChordName = getChordName(chordRoot, chordQuality);
@@ -132,6 +165,28 @@ export function ChordPositionFinder() {
     setTimeout(() => setPlayingPosition(null), 2000);
   };
 
+  const exportProgression = () => {
+    if (progression.length === 0) return;
+
+    saveProgression({
+      chords: progression,
+      source: 'chord-finder',
+      timestamp: Date.now()
+    });
+  };
+
+  const importProgression = () => {
+    const saved = loadProgression();
+    if (!saved) return;
+
+    setProgression(saved.chords);
+    setHasImportedProgression(false);
+    clearProgression();
+  };
+
+  const possibleKeys = chordType === 'standard' ? detectPossibleKeys(chordRoot, chordQuality) : [];
+  const bestKey = possibleKeys.length > 0 ? possibleKeys[0] : null;
+
   return (
     <div className="max-w-6xl mx-auto p-6">
       <div className="text-center mb-8">
@@ -140,7 +195,50 @@ export function ChordPositionFinder() {
           <h1 className="text-3xl font-bold text-[#E5E5E5]">Chord Position Finder</h1>
         </div>
         <p className="text-[#A3A3A3]">Find multiple positions for any chord on the fretboard</p>
+        <p className="text-sm text-[#666] mt-2">
+          <BookOpen size={14} className="inline mr-1" />
+          Learn music theory and chord relationships in Chord Reference
+        </p>
       </div>
+
+      {bestKey && chordType === 'standard' && (
+        <div className="mb-6 bg-blue-900/20 border border-blue-600/50 rounded-lg p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <Info size={18} className="text-blue-400" />
+            <span className="text-base font-semibold text-blue-300">
+              Chord Context
+            </span>
+          </div>
+          <p className="text-sm text-gray-300 mb-3">
+            <span className="font-bold text-blue-200">{currentChordName}</span> is the{' '}
+            <span className="font-bold text-blue-200">{bestKey.romanNumeral}</span> chord{' '}
+            ({bestKey.function}) in the key of{' '}
+            <span className="font-bold text-blue-200">{bestKey.key} {bestKey.mode}</span>
+          </p>
+          {possibleKeys.length > 1 && (
+            <details className="text-sm text-gray-400">
+              <summary className="cursor-pointer hover:text-gray-300 mb-2">
+                Also works in {possibleKeys.length - 1} other {possibleKeys.length - 1 === 1 ? 'key' : 'keys'}
+              </summary>
+              <div className="pl-4 space-y-1">
+                {possibleKeys.slice(1, 4).map((key, i) => (
+                  <div key={i}>
+                    {key.romanNumeral} in {key.key} {key.mode} ({key.function})
+                  </div>
+                ))}
+              </div>
+            </details>
+          )}
+          {onNavigateToReference && (
+            <button
+              onClick={onNavigateToReference}
+              className="mt-3 text-blue-400 hover:text-blue-300 underline text-sm flex items-center gap-1"
+            >
+              View all chords in {bestKey.key} {bestKey.mode} →
+            </button>
+          )}
+        </div>
+      )}
 
       <div className="bg-[#1A1A1A] rounded-lg shadow-xl border-2 border-[#2A2A2A] p-6">
 
@@ -267,6 +365,19 @@ export function ChordPositionFinder() {
 
         {progressionOpen && (
           <div className="px-6 pb-6">
+            {hasImportedProgression && progression.length === 0 && (
+              <div className="mb-4 p-3 bg-blue-900/20 border border-blue-600/50 rounded-lg">
+                <p className="text-sm text-blue-300 mb-2">Progression available from Chord Reference</p>
+                <button
+                  onClick={importProgression}
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-all flex items-center gap-2"
+                >
+                  <Upload size={16} />
+                  Import Progression
+                </button>
+              </div>
+            )}
+
             <div className="mb-4">
           <p className="text-sm text-[#A3A3A3] mb-3">Your Progression: (Click + to add current chord)</p>
           <div className="flex flex-wrap gap-2">
@@ -290,7 +401,7 @@ export function ChordPositionFinder() {
         </div>
 
         {progression.length > 0 && (
-          <div className="flex gap-3">
+          <div className="flex flex-wrap gap-3">
             <button
               onClick={playProgressionSequence}
               disabled={playingProgression}
@@ -298,6 +409,13 @@ export function ChordPositionFinder() {
             >
               <Play size={16} />
               {playingProgression ? 'Playing...' : 'Play Progression'}
+            </button>
+            <button
+              onClick={exportProgression}
+              className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition-all flex items-center gap-2"
+            >
+              <Download size={16} />
+              Export to Reference
             </button>
             <button
               onClick={() => setProgression([])}
@@ -344,6 +462,36 @@ export function ChordPositionFinder() {
           </div>
         )}
       </div>
+
+      {chordType === 'standard' && (displayedPositions.length > 0) && (
+        <div className="mb-6 bg-[#1A1A1A] border-2 border-[#2A2A2A] rounded-lg p-4">
+          <h4 className="font-bold text-[#E5E5E5] mb-3 flex items-center gap-2">
+            <Info size={18} className="text-blue-500" />
+            Related Chords
+          </h4>
+          <div className="flex flex-wrap gap-2">
+            {getRelatedChords(chordRoot, chordQuality).map((relatedChord, index) => (
+              <button
+                key={index}
+                onClick={() => {
+                  setChordRoot(relatedChord.root);
+                  setChordQuality(relatedChord.quality);
+                  setTimeout(() => {
+                    const searchChord = getChordName(relatedChord.root, relatedChord.quality);
+                    const positions = getChordPositions(searchChord);
+                    setDisplayedPositions(positions);
+                  }, 50);
+                }}
+                className="px-3 py-2 bg-[#242424] border border-blue-600/50 hover:border-blue-600 rounded-lg text-[#E5E5E5] text-sm font-medium hover:bg-[#2A2A2A] transition-all"
+                title={relatedChord.relationship}
+              >
+                {getChordName(relatedChord.root, relatedChord.quality)}
+                <span className="text-xs text-[#A3A3A3] ml-1">({relatedChord.relationship})</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {(displayedPositions.length > 0 || displayedPowerPositions.length > 0) ? (
         <div>
