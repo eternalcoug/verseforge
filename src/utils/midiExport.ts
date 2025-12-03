@@ -1,5 +1,7 @@
 import { Midi } from '@tonejs/midi';
 import { Chord } from './musicTheory';
+import { MelodyNote, pitchToMidiNumber } from './melodyTypes';
+import { SongSection } from './songTemplates';
 
 const NOTE_TO_MIDI: Record<string, number> = {
   'C': 48, 'C#': 49, 'D': 50, 'D#': 51, 'E': 52, 'F': 53,
@@ -51,6 +53,81 @@ export function exportToMidi(progression: Chord[][], bpm: number): Blob {
 
 export function downloadMidi(progression: Chord[][], bpm: number, filename: string = 'progression.mid'): void {
   const blob = exportToMidi(progression, bpm);
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+export function exportMelodyToMidi(melody: MelodyNote[], bpm: number): Blob {
+  const midi = new Midi();
+  const track = midi.addTrack();
+  track.name = 'Melody';
+  track.instrument.number = 0;
+
+  midi.header.setTempo(bpm);
+
+  const beatDuration = 60 / bpm;
+
+  melody.forEach(note => {
+    const midiNumber = pitchToMidiNumber(note.pitch, note.octave);
+    const startTime = note.start * beatDuration;
+    const duration = note.duration * beatDuration;
+
+    track.addNote({
+      midi: midiNumber,
+      time: startTime,
+      duration: duration,
+      velocity: note.velocity
+    });
+  });
+
+  return new Blob([midi.toArray()], { type: 'audio/midi' });
+}
+
+export function exportSongWithMelodyToMidi(sections: SongSection[], bpm: number): Blob {
+  const midi = new Midi();
+
+  midi.header.setTempo(bpm);
+
+  const beatDuration = 60 / bpm;
+  let currentTime = 0;
+
+  sections.forEach(section => {
+    if (section.melody && section.melody.length > 0) {
+      const melodyTrack = midi.addTrack();
+      melodyTrack.name = `${section.type} Melody`;
+      melodyTrack.instrument.number = 0;
+
+      section.melody.forEach(note => {
+        const midiNumber = pitchToMidiNumber(note.pitch, note.octave);
+        const startTime = currentTime + (note.start * beatDuration);
+        const duration = note.duration * beatDuration;
+
+        melodyTrack.addNote({
+          midi: midiNumber,
+          time: startTime,
+          duration: duration,
+          velocity: note.velocity
+        });
+      });
+
+      const sectionDuration = Math.max(
+        ...section.melody.map(n => n.start + n.duration)
+      ) * beatDuration;
+      currentTime += sectionDuration;
+    }
+  });
+
+  return new Blob([midi.toArray()], { type: 'audio/midi' });
+}
+
+export function downloadSongMidi(sections: SongSection[], bpm: number, filename: string = 'song.mid'): void {
+  const blob = exportSongWithMelodyToMidi(sections, bpm);
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;

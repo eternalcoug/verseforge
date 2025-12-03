@@ -1,3 +1,5 @@
+import { MelodyNote } from './melodyTypes';
+
 export type SectionType = 'intro' | 'verse' | 'prechorus' | 'chorus' | 'bridge' | 'solo' | 'outro' | 'buildup' | 'drop' | 'hook';
 
 export interface SongSection {
@@ -6,6 +8,7 @@ export interface SongSection {
   number?: number;
   lyrics: string[];
   bars?: number;
+  melody?: MelodyNote[];
 }
 
 export interface SongTemplate {

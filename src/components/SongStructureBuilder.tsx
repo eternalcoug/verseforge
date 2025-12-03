@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef } from 'react';
-import { Music, Save, Download, Trash2, Eye, Maximize2, Printer, Copy, AlertCircle, CheckCircle, X, ChevronDown, ChevronRight, GripVertical } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Music, Save, Download, Trash2, Eye, Maximize2, Printer, Copy, AlertCircle, CheckCircle, X, ChevronDown, ChevronRight, GripVertical, Music2 } from 'lucide-react';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -13,6 +13,7 @@ import {
 import { countLineSyllables, analyzeTextSyllables, checkFlowConsistency, suggestTempo } from '../utils/syllableCounter';
 import { detectRhymeScheme, countHookMentions } from '../utils/rhymeDetector';
 import { parseLineWithChords, formatChordLine } from '../utils/chordNotation';
+import { MelodyEditor } from './MelodyEditor';
 
 interface Song {
   id: string;
@@ -20,6 +21,7 @@ interface Song {
   genre: string;
   hook: string;
   tempo: number;
+  key?: string;
   structure: SongSection[];
   dateCreated: number;
   dateModified: number;
@@ -124,6 +126,9 @@ interface SortableSectionProps {
   onToggle: () => void;
   onDelete: () => void;
   onUpdateLyrics: (lines: string[]) => void;
+  onUpdateMelody: (melody: import('../utils/melodyTypes').MelodyNote[]) => void;
+  tempo: number;
+  songKey: string;
 }
 
 function SortableSection({
@@ -134,8 +139,12 @@ function SortableSection({
   sectionAnalysis,
   onToggle,
   onDelete,
-  onUpdateLyrics
+  onUpdateLyrics,
+  onUpdateMelody,
+  tempo,
+  songKey
 }: SortableSectionProps) {
+  const [showMelodyEditor, setShowMelodyEditor] = React.useState(false);
   const {
     attributes,
     listeners,
@@ -238,6 +247,32 @@ function SortableSection({
               {sectionAnalysis.warnings.map((warning, i) => (
                 <p key={i} className="text-sm text-yellow-700">• {warning}</p>
               ))}
+            </div>
+          )}
+
+          {section.lyrics.length > 0 && (
+            <div className="mt-4">
+              <button
+                onClick={() => setShowMelodyEditor(!showMelodyEditor)}
+                className="flex items-center gap-2 px-4 py-2 bg-[#242424] text-[#E5E5E5] border-2 border-[#2A2A2A] rounded-lg hover:border-blue-400 hover:bg-[#2A2A2A] transition-all font-semibold"
+              >
+                <Music2 className="w-4 h-4" />
+                {showMelodyEditor ? 'Hide Melody Editor' : '🎵 Add Melody'}
+              </button>
+
+              {showMelodyEditor && (
+                <div className="mt-3">
+                  <MelodyEditor
+                    lyrics={section.lyrics}
+                    melody={section.melody || []}
+                    onMelodyChange={onUpdateMelody}
+                    sectionId={section.id}
+                    tempo={tempo}
+                    songKey={songKey}
+                    scale="major"
+                  />
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -484,6 +519,13 @@ export function SongStructureBuilder() {
   function updateSectionLyrics(sectionId: string, lyrics: string[]) {
     const newStructure = song.structure.map(section =>
       section.id === sectionId ? { ...section, lyrics } : section
+    );
+    handleSongUpdate({ structure: newStructure });
+  }
+
+  function updateSectionMelody(sectionId: string, melody: import('../utils/melodyTypes').MelodyNote[]) {
+    const newStructure = song.structure.map(section =>
+      section.id === sectionId ? { ...section, melody } : section
     );
     handleSongUpdate({ structure: newStructure });
   }
@@ -1226,6 +1268,9 @@ export function SongStructureBuilder() {
                           onToggle={() => toggleSection(section.id)}
                           onDelete={() => deleteSection(section.id)}
                           onUpdateLyrics={(lines) => updateSectionLyrics(section.id, lines)}
+                          onUpdateMelody={(melody) => updateSectionMelody(section.id, melody)}
+                          tempo={song.tempo}
+                          songKey={song.key || 'C'}
                         />
                       );
                     })}
