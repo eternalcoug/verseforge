@@ -1256,9 +1256,56 @@ export const CHORD_POSITIONS: Record<string, ChordPosition[]> = {
   ]
 };
 
+function transposePosition(position: ChordPosition, semitones: number, newChordName: string): ChordPosition {
+  const transposeFret = (fret: number | 'x' | 0): number | 'x' | 0 => {
+    if (fret === 'x') return 'x';
+    if (fret === 0) return 0;
+    return (fret as number) + semitones;
+  };
+
+  return {
+    ...position,
+    chord: newChordName,
+    frets: position.frets.map(transposeFret),
+    baseFret: position.baseFret + semitones
+  };
+}
+
 export function getChordPositions(chordName: string): ChordPosition[] {
   const normalized = chordName.replace('♭', 'b').replace('♯', '#');
-  const positions = CHORD_POSITIONS[normalized] || [];
+
+  let positions = CHORD_POSITIONS[normalized];
+
+  if (!positions && normalized.includes('#')) {
+    const sharpToNatural: Record<string, string> = {
+      'C#': 'C',
+      'D#': 'D',
+      'F#': 'F',
+      'G#': 'G',
+      'A#': 'A'
+    };
+
+    const rootMatch = normalized.match(/^([A-G]#)/);
+    if (rootMatch) {
+      const sharpRoot = rootMatch[1];
+      const naturalRoot = sharpToNatural[sharpRoot];
+
+      if (naturalRoot) {
+        const naturalChordName = normalized.replace(sharpRoot, naturalRoot);
+        const naturalPositions = CHORD_POSITIONS[naturalChordName];
+
+        if (naturalPositions) {
+          positions = naturalPositions.map(pos =>
+            transposePosition(pos, 1, normalized)
+          );
+        }
+      }
+    }
+  }
+
+  if (!positions) {
+    return [];
+  }
 
   return positions.sort((a, b) => {
     const aMinFret = Math.min(...a.frets.filter(f => typeof f === 'number' && f > 0) as number[]);
