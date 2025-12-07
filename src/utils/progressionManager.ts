@@ -8,6 +8,7 @@ export interface SharedProgression {
 
 export interface ChordNavigationContext {
   chord: string;
+  quality?: string;
   key?: string;
   timestamp: number;
 }
@@ -51,10 +52,11 @@ export const clearProgression = (): void => {
   }
 };
 
-export const saveChordContext = (chord: string, key?: string): void => {
+export const saveChordContext = (chord: string, quality?: string, key?: string): void => {
   try {
     const context: ChordNavigationContext = {
       chord,
+      quality,
       key,
       timestamp: Date.now()
     };

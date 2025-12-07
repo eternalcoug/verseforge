@@ -232,17 +232,24 @@ export function ChordPositionFinder({ onNavigateToReference }: ChordPositionFind
       const root = context.chord.replace(/[^A-G#]/g, '');
       if (root) setChordRoot(root);
 
-      const qualityMatch = context.chord.match(/(maj7|min7|m7|7|maj|min|m|sus2|sus4|dim|aug|°|\+)/i);
-      if (qualityMatch) {
-        const qualityStr = qualityMatch[0].toLowerCase();
-        if (qualityStr === 'maj7') setChordQuality('major7');
-        else if (qualityStr === 'min7' || qualityStr === 'm7') setChordQuality('minor7');
-        else if (qualityStr === '7') setChordQuality('dominant7');
-        else if (qualityStr === 'min' || qualityStr === 'm') setChordQuality('minor');
-        else if (qualityStr === 'sus2') setChordQuality('sus2');
-        else if (qualityStr === 'sus4') setChordQuality('sus4');
-        else if (qualityStr === 'dim' || qualityStr === '°') setChordQuality('diminished');
-        else if (qualityStr === 'aug' || qualityStr === '+') setChordQuality('augmented');
+      if (context.quality) {
+        const quality = context.quality as ChordQuality;
+        setChordQuality(quality);
+      } else {
+        const qualityMatch = context.chord.match(/(maj7|min7|m7|7|maj|min|m|sus2|sus4|dim|aug|°|\+)/i);
+        if (qualityMatch) {
+          const qualityStr = qualityMatch[0].toLowerCase();
+          if (qualityStr === 'maj7') setChordQuality('major7');
+          else if (qualityStr === 'min7' || qualityStr === 'm7') setChordQuality('minor7');
+          else if (qualityStr === '7') setChordQuality('dominant7');
+          else if (qualityStr === 'min' || qualityStr === 'm') setChordQuality('minor');
+          else if (qualityStr === 'sus2') setChordQuality('sus2');
+          else if (qualityStr === 'sus4') setChordQuality('sus4');
+          else if (qualityStr === 'dim' || qualityStr === '°') setChordQuality('diminished');
+          else if (qualityStr === 'aug' || qualityStr === '+') setChordQuality('augmented');
+        } else {
+          setChordQuality('major');
+        }
       }
       clearChordContext();
       setShouldAutoSearch(true);

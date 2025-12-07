@@ -317,7 +317,7 @@ export function ChordReference({ onNavigateToChordFinder }: ChordReferenceProps 
 
   // Phase 1: Navigate to Chord Finder with context
   const navigateToChordFinder = (chord: DiatonicChord) => {
-    saveChordContext(chord.display, selectedKey);
+    saveChordContext(chord.display, chord.quality, selectedKey);
     if (onNavigateToChordFinder) {
       onNavigateToChordFinder();
     }
