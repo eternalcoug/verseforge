@@ -1256,6 +1256,8 @@ export const CHORD_POSITIONS: Record<string, ChordPosition[]> = {
   ]
 };
 
+const CHROMATIC_NOTES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+
 function transposePosition(position: ChordPosition, semitones: number, newChordName: string): ChordPosition {
   const transposeFret = (fret: number | 'x' | 0): number | 'x' | 0 => {
     if (fret === 'x') return 'x';
@@ -1271,32 +1273,31 @@ function transposePosition(position: ChordPosition, semitones: number, newChordN
   };
 }
 
+function getSemitonesFromC(note: string): number {
+  const normalizedNote = note.replace('♭', 'b').replace('♯', '#');
+  const index = CHROMATIC_NOTES.indexOf(normalizedNote);
+  return index === -1 ? 0 : index;
+}
+
 export function getChordPositions(chordName: string): ChordPosition[] {
   const normalized = chordName.replace('♭', 'b').replace('♯', '#');
 
   let positions = CHORD_POSITIONS[normalized];
 
-  if (!positions && normalized.includes('#')) {
-    const sharpToNatural: Record<string, string> = {
-      'C#': 'C',
-      'D#': 'D',
-      'F#': 'F',
-      'G#': 'G',
-      'A#': 'A'
-    };
-
-    const rootMatch = normalized.match(/^([A-G]#)/);
+  if (!positions) {
+    const rootMatch = normalized.match(/^([A-G][#b]?)/);
     if (rootMatch) {
-      const sharpRoot = rootMatch[1];
-      const naturalRoot = sharpToNatural[sharpRoot];
+      const root = rootMatch[1];
+      const quality = normalized.substring(root.length);
 
-      if (naturalRoot) {
-        const naturalChordName = normalized.replace(sharpRoot, naturalRoot);
-        const naturalPositions = CHORD_POSITIONS[naturalChordName];
+      const cChordName = 'C' + quality;
+      const cPositions = CHORD_POSITIONS[cChordName];
 
-        if (naturalPositions) {
-          positions = naturalPositions.map(pos =>
-            transposePosition(pos, 1, normalized)
+      if (cPositions) {
+        const semitones = getSemitonesFromC(root);
+        if (semitones > 0) {
+          positions = cPositions.map(pos =>
+            transposePosition(pos, semitones, normalized)
           );
         }
       }
