@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Play, MapPin, Plus, Music, Info, ChevronDown, BookOpen, Download, Upload } from 'lucide-react';
 import { getChordPositions, CHORD_POSITIONS, ChordPosition } from '../utils/chordPositions';
+import { getDADGADChordPositions } from '../utils/dadgadPositions';
 import { generatePowerChordPositions, PowerChordPosition } from '../utils/powerChordTheory';
 import { GuitarDiagram } from './GuitarDiagram';
 import { ProgressionPlayer } from '../utils/audioPlayer';
@@ -20,6 +21,13 @@ import { detectPossibleKeys, getBestKeyMatch } from '../utils/keyDetection';
 import { GUITAR_6_TUNINGS, getTuningInfo, getRecommendedChordsForTuning, TuningConfig } from '../utils/tuningConfigurations';
 
 const playerInstance = new ProgressionPlayer();
+
+function getChordPositionsByTuning(chordName: string, tuning: string): ChordPosition[] {
+  if (tuning === 'dadgad') {
+    return getDADGADChordPositions(chordName);
+  }
+  return getChordPositions(chordName);
+}
 
 function convertPowerChordToChordPosition(powerPos: PowerChordPosition): ChordPosition {
   const frets: (number | 'x' | 0)[] = ['x', 'x', 'x', 'x', 'x', 'x'];
@@ -49,7 +57,7 @@ export function ChordPositionFinder({ onNavigateToReference }: ChordPositionFind
   const [chordRoot, setChordRoot] = useState('C');
   const [chordQuality, setChordQuality] = useState<ChordQuality>('major');
   const [chordType, setChordType] = useState<'standard' | 'power'>('standard');
-  const [displayedPositions, setDisplayedPositions] = useState(getChordPositions('C'));
+  const [displayedPositions, setDisplayedPositions] = useState(getChordPositionsByTuning('C', 'standard'));
   const [displayedPowerPositions, setDisplayedPowerPositions] = useState<PowerChordPosition[]>([]);
   const [playingPosition, setPlayingPosition] = useState<number | null>(null);
   const [progression, setProgression] = useState<string[]>([]);
@@ -71,7 +79,7 @@ export function ChordPositionFinder({ onNavigateToReference }: ChordPositionFind
       setChordQuality('major');
       setShowScaleChords(true);
       setTimeout(() => {
-        const positions = getChordPositions('D');
+        const positions = getChordPositionsByTuning('D', tuning);
         setDisplayedPositions(positions);
       }, 50);
     } else {
@@ -82,7 +90,7 @@ export function ChordPositionFinder({ onNavigateToReference }: ChordPositionFind
   const handleSearch = () => {
     if (chordType === 'standard') {
       const searchChord = currentChordName;
-      const positions = getChordPositions(searchChord);
+      const positions = getChordPositionsByTuning(searchChord, selectedTuning);
       setDisplayedPositions(positions);
     } else {
       const positions = generatePowerChordPositions(chordRoot);
@@ -285,7 +293,7 @@ export function ChordPositionFinder({ onNavigateToReference }: ChordPositionFind
     if (shouldAutoSearch) {
       if (chordType === 'standard') {
         const searchChord = getChordName(chordRoot, chordQuality);
-        const positions = getChordPositions(searchChord);
+        const positions = getChordPositionsByTuning(searchChord, selectedTuning);
         setDisplayedPositions(positions);
       } else {
         const positions = generatePowerChordPositions(chordRoot);
@@ -293,7 +301,7 @@ export function ChordPositionFinder({ onNavigateToReference }: ChordPositionFind
       }
       setShouldAutoSearch(false);
     }
-  }, [shouldAutoSearch, chordRoot, chordQuality, chordType]);
+  }, [shouldAutoSearch, chordRoot, chordQuality, chordType, selectedTuning]);
 
   return (
     <div className="max-w-6xl mx-auto p-6">
@@ -356,7 +364,7 @@ export function ChordPositionFinder({ onNavigateToReference }: ChordPositionFind
           <button
             onClick={() => {
               setChordType('standard');
-              setDisplayedPositions(getChordPositions(currentChordName));
+              setDisplayedPositions(getChordPositionsByTuning(currentChordName, selectedTuning));
               setDisplayedPowerPositions([]);
             }}
             className={`
@@ -628,7 +636,7 @@ export function ChordPositionFinder({ onNavigateToReference }: ChordPositionFind
                     setChordRoot(chord.root);
                     setChordQuality(qualityValue as ChordQuality);
                     setTimeout(() => {
-                      const positions = getChordPositions(chordName);
+                      const positions = getChordPositionsByTuning(chordName, selectedTuning);
                       setDisplayedPositions(positions);
                     }, 50);
                   }}
@@ -659,7 +667,7 @@ export function ChordPositionFinder({ onNavigateToReference }: ChordPositionFind
                   setChordQuality(relatedChord.quality);
                   setTimeout(() => {
                     const searchChord = getChordName(relatedChord.root, relatedChord.quality);
-                    const positions = getChordPositions(searchChord);
+                    const positions = getChordPositionsByTuning(searchChord, selectedTuning);
                     setDisplayedPositions(positions);
                   }, 50);
                 }}
