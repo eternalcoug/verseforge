@@ -180,3 +180,39 @@ export const GUITAR_12_TUNINGS: Record<string, TuningConfig> = {
     description: "Open G tuning with octave pairs - forms G major chord"
   }
 };
+
+export interface ScaleInfo {
+  root: string;
+  chords: Array<{
+    root: string;
+    quality: string;
+    degree: string;
+    function: string;
+  }>;
+}
+
+export const MAJOR_SCALE_CHORDS: Record<string, ScaleInfo> = {
+  'D': {
+    root: 'D',
+    chords: [
+      { root: 'D', quality: 'major', degree: 'I', function: 'Tonic' },
+      { root: 'E', quality: 'minor', degree: 'ii', function: 'Supertonic' },
+      { root: 'F#', quality: 'minor', degree: 'iii', function: 'Mediant' },
+      { root: 'G', quality: 'major', degree: 'IV', function: 'Subdominant' },
+      { root: 'A', quality: 'major', degree: 'V', function: 'Dominant' },
+      { root: 'B', quality: 'minor', degree: 'vi', function: 'Submediant' },
+      { root: 'C#', quality: 'diminished', degree: 'vii°', function: 'Leading Tone' }
+    ]
+  }
+};
+
+export function getTuningInfo(tuningKey: string): TuningConfig | null {
+  return GUITAR_6_TUNINGS[tuningKey] || null;
+}
+
+export function getRecommendedChordsForTuning(tuningKey: string): ScaleInfo | null {
+  if (tuningKey === 'dadgad') {
+    return MAJOR_SCALE_CHORDS['D'];
+  }
+  return null;
+}

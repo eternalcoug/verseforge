@@ -17,6 +17,7 @@ import {
 } from '../utils/chordEnhancements';
 import { saveProgression, loadProgression, clearProgression, loadChordContext, clearChordContext } from '../utils/progressionManager';
 import { detectPossibleKeys, getBestKeyMatch } from '../utils/keyDetection';
+import { GUITAR_6_TUNINGS, getTuningInfo, getRecommendedChordsForTuning, TuningConfig } from '../utils/tuningConfigurations';
 
 const playerInstance = new ProgressionPlayer();
 
@@ -44,6 +45,7 @@ interface ChordPositionFinderProps {
 }
 
 export function ChordPositionFinder({ onNavigateToReference }: ChordPositionFinderProps = {}) {
+  const [selectedTuning, setSelectedTuning] = useState('standard');
   const [chordRoot, setChordRoot] = useState('C');
   const [chordQuality, setChordQuality] = useState<ChordQuality>('major');
   const [chordType, setChordType] = useState<'standard' | 'power'>('standard');
@@ -55,9 +57,27 @@ export function ChordPositionFinder({ onNavigateToReference }: ChordPositionFind
   const [progressionOpen, setProgressionOpen] = useState(false);
   const [hasImportedProgression, setHasImportedProgression] = useState(false);
   const [shouldAutoSearch, setShouldAutoSearch] = useState(false);
+  const [showScaleChords, setShowScaleChords] = useState(false);
 
   const availableRoots = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
   const currentChordName = getChordName(chordRoot, chordQuality);
+  const currentTuningConfig = getTuningInfo(selectedTuning);
+  const scaleInfo = getRecommendedChordsForTuning(selectedTuning);
+
+  const handleTuningChange = (tuning: string) => {
+    setSelectedTuning(tuning);
+    if (tuning === 'dadgad') {
+      setChordRoot('D');
+      setChordQuality('major');
+      setShowScaleChords(true);
+      setTimeout(() => {
+        const positions = getChordPositions('D');
+        setDisplayedPositions(positions);
+      }, 50);
+    } else {
+      setShowScaleChords(false);
+    }
+  };
 
   const handleSearch = () => {
     if (chordType === 'standard') {
@@ -391,7 +411,22 @@ export function ChordPositionFinder({ onNavigateToReference }: ChordPositionFind
         <label className="block text-[#E5E5E5] font-bold mb-2">
           Select Chord
         </label>
-        <div className="grid md:grid-cols-2 gap-3 mb-3">
+        <div className="grid md:grid-cols-3 gap-3 mb-3">
+          <div>
+            <label className="block text-sm text-[#A3A3A3] mb-1">Tuning:</label>
+            <select
+              value={selectedTuning}
+              onChange={(e) => handleTuningChange(e.target.value)}
+              className="dark-select w-full text-lg"
+            >
+              <option value="standard">Standard</option>
+              <option value="dadgad">DADGAD</option>
+              <option value="dropD">Drop D</option>
+              <option value="openG">Open G</option>
+              <option value="openD">Open D</option>
+              <option value="dropC">Drop C</option>
+            </select>
+          </div>
           <div>
             <label className="block text-sm text-[#A3A3A3] mb-1">Root Note:</label>
             <select
@@ -550,6 +585,64 @@ export function ChordPositionFinder({ onNavigateToReference }: ChordPositionFind
           </div>
         )}
       </div>
+
+      {currentTuningConfig && selectedTuning !== 'standard' && (
+        <div className="mb-6 bg-green-900/20 border-2 border-green-600/50 rounded-lg p-4">
+          <h4 className="font-bold text-green-300 mb-3 flex items-center gap-2">
+            <Music size={18} className="text-green-400" />
+            Current Tuning: {currentTuningConfig.name}
+          </h4>
+          <p className="text-sm text-gray-300 mb-2">{currentTuningConfig.description}</p>
+          <div className="flex flex-wrap gap-2 text-sm">
+            {currentTuningConfig.strings.map((string, index) => (
+              <span key={index} className="px-2 py-1 bg-green-900/30 border border-green-600/30 rounded text-green-200">
+                {string.label}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {showScaleChords && scaleInfo && (
+        <div className="mb-6 bg-blue-900/20 border-2 border-blue-600/50 rounded-lg p-4">
+          <h4 className="font-bold text-blue-300 mb-3 flex items-center gap-2">
+            <Info size={18} className="text-blue-400" />
+            Chords in {scaleInfo.root} Major Scale
+          </h4>
+          <p className="text-sm text-gray-300 mb-3">
+            Perfect for {selectedTuning.toUpperCase()} tuning
+          </p>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+            {scaleInfo.chords.map((chord, index) => {
+              const chordName = chord.quality === 'major' ? chord.root :
+                               chord.quality === 'minor' ? `${chord.root}m` :
+                               chord.quality === 'diminished' ? `${chord.root}dim` : chord.root;
+              const qualityValue = chord.quality === 'major' ? 'major' :
+                                 chord.quality === 'minor' ? 'minor' :
+                                 chord.quality === 'diminished' ? 'diminished' : 'major';
+
+              return (
+                <button
+                  key={index}
+                  onClick={() => {
+                    setChordRoot(chord.root);
+                    setChordQuality(qualityValue as ChordQuality);
+                    setTimeout(() => {
+                      const positions = getChordPositions(chordName);
+                      setDisplayedPositions(positions);
+                    }, 50);
+                  }}
+                  className="px-3 py-3 bg-[#242424] border border-blue-600/50 hover:border-blue-600 rounded-lg hover:bg-[#2A2A2A] transition-all text-left"
+                >
+                  <div className="font-bold text-[#E5E5E5] text-lg">{chordName}</div>
+                  <div className="text-xs text-blue-400">{chord.degree}</div>
+                  <div className="text-xs text-[#A3A3A3]">{chord.function}</div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {chordType === 'standard' && (displayedPositions.length > 0) && (
         <div className="mb-6 bg-[#1A1A1A] border-2 border-[#2A2A2A] rounded-lg p-4">
